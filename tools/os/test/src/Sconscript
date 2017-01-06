@@ -1,0 +1,28 @@
+Import('env')
+from custombuilder import CopyEnv
+
+myEnv = CopyEnv(env)
+
+
+osatestlib_sources = [ 
+	'memtests.c',	
+]
+
+myEnv.Lib('osatests',osatestlib_sources,TESTBUILD=1)
+
+our_libs = [
+#The library containing the tests
+	'osatests',
+	
+#Libraries to get everything linked	
+	'memintf',
+	'mem',
+	]
+
+libs = our_libs[:]
+
+system_libs = ['pthread','rt','cmocka']
+ 
+ostests = myEnv.App('osa-tests',source='os_main.c',LIBS=libs,TESTBUILD=1,SYSTEM_LIBS=system_libs)
+
+myEnv.Alias('unittests',ostests)

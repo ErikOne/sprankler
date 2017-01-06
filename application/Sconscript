@@ -1,0 +1,20 @@
+Import('env')
+
+myEnv=env.Clone()
+
+interfaces = [
+	'memintf',	
+]
+
+implementations = [
+	'mem',
+]
+
+libs = []
+libs.extend(interfaces)
+libs.extend(implementations)
+
+system_libs = []
+
+sprankler = myEnv.App('Sprankler','sprankler.c',LIBS=libs,SYSTEM_LIBS=system_libs)
+myEnv.Alias('app',sprankler)

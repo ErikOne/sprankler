@@ -1,0 +1,32 @@
+Import('env')
+
+import multiprocessing
+
+myEnv = env.Clone()
+
+tarball       = "cmocka-1.1.0.tar.xz"
+unpack_subdir = "cmocka-1.1.0"
+
+work_dir = myEnv.Dir('.')
+src_dir = myEnv.Dir(unpack_subdir, work_dir)
+bld_dir = myEnv.Dir("build", src_dir)
+
+cmocka_inc = myEnv.File("include/cmocka/cmocka.h",myEnv['THIRDPARTY_ROOT'])
+cmocka_so = myEnv.File("lib/libcmocka.so",myEnv['THIRDPARTY_ROOT'])
+
+jobs = 2*multiprocessing.cpu_count() + 1
+myEnv.Command([cmocka_inc,cmocka_so],tarball,
+  [
+    'rm -rf %s' %src_dir.path,
+    'mkdir -p %s' %bld_dir.path,
+    'mkdir -p %s' %myEnv['THIRDPARTY_LIB_DIR'],
+    'mkdir -p %s/cmocka' %myEnv['THIRDPARTY_INC_DIR'],
+    '$TAR xf $SOURCE -C %s' % work_dir.path,
+    'cd %s && cmake -DCMAKE_INSTALL_PREFIX=%s -DCMAKE_BUILD_TYPE=Release ..' %(bld_dir.path, env['THIRDPARTY_ROOT'].abspath),
+    'cd %s && make -j %d install' %(bld_dir.path, jobs),
+    'cd %s && mv cmocka.h cmocka' %myEnv['THIRDPARTY_INC_DIR']
+  ]
+)
+
+
+myEnv.Alias("cmocka",[cmocka_inc,cmocka_so])

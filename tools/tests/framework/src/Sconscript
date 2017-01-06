@@ -1,0 +1,10 @@
+Import('env')
+
+myEnv=env.Clone()
+
+# Because of the valgrind macro's I can not use -Werror
+myFlags = ['-Wall'] 
+
+
+lib_sources = ['framework.c']
+myEnv.Lib('testframework',lib_sources,CCFLAGS=myFlags);

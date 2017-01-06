@@ -1,0 +1,7 @@
+Import ('env')
+
+SUBDIRS = [
+	'src'
+]
+
+env.SConscript(dirs=SUBDIRS, name='Sconscript', exports='env')

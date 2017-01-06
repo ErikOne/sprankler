@@ -1,0 +1,14 @@
+Import('env')
+
+from custombuilder import CopyEnv
+
+myEnv = CopyEnv(env)
+
+mem_intf = ['mem_intf.c']
+mem_impl = ['mem.c']
+ 
+ 
+lib = myEnv.Lib('mem',mem_impl)
+intf = myEnv.Lib('memintf',mem_intf)
+
+myEnv.Alias('osa',[lib, intf])   
