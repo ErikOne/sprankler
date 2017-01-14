@@ -3,6 +3,7 @@ Import('env')
 
 SUBDIRS = [
   'check',
+  'valgrind',
 ]
 
 env.SConscript(dirs=SUBDIRS, name='Sconscript', exports='env')

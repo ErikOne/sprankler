@@ -1,0 +1,32 @@
+Import('env')
+
+import multiprocessing
+
+myEnv = env.Clone()
+
+tarball       = "valgrind-3.11.0.tar.bz2"
+unpack_subdir = "valgrind-3.11.0"
+
+work_dir = myEnv.Dir('.')
+src_dir = myEnv.Dir(unpack_subdir, work_dir)
+
+valgrind_inc = myEnv.File("include/valgrind/valgrind.h",myEnv['THIRDPARTY_ROOT'])
+valgrind_so_3_11_0 = myEnv.File("lib/valgrind/vgpreload_core-x86-linux.so",myEnv['THIRDPARTY_ROOT'])
+
+jobs = 2*multiprocessing.cpu_count() + 1
+myEnv.Command([valgrind_inc,valgrind_so_3_11_0],tarball,
+  [
+    'rm -rf %s' %src_dir.path,
+    'mkdir -p %s' %src_dir.path,
+    'mkdir -p %s' %myEnv['THIRDPARTY_LIB_DIR'],
+    'mkdir -p %s/valgrind' %myEnv['THIRDPARTY_INC_DIR'],
+    
+    Delete('${TARGETS}'),
+    
+    '$TAR xf $SOURCE -C %s' % work_dir.path,
+    'cd %s && ./configure --prefix=$THIRDPARTY_ROOT.abspath' %src_dir.path,
+    'cd %s && make -j %d install' %(src_dir.path, jobs),
+  ]
+)
+
+myEnv.Alias("valgrind",[valgrind_inc])

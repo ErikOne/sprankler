@@ -20,6 +20,7 @@ myEnv.Lib('threaddefimpl',thread_defaults_sources,TESTBUILD=1)
 
 osatestlib_sources = [ 
 	'memtests.c',
+	'locktests.c',
 ]
 
 myEnv.Lib('osatests',osatestlib_sources,TESTBUILD=1)

@@ -13,76 +13,85 @@
 
 #include "thread_impl.h"
 
-static int localSetupLockTests(void ** state)
+static void localSetupLockTests(void)
 {
   unittest_installDefaultMemIntf();
   unittest_installDefaultThreadIntf();
-  return 0;
 }
 
-static int localTeardownLockTest(void ** state)
+static void localTeardownLockTest(void)
 {
   unittest_uninstallDefaultThreadIntf();
   unittest_uninstallDefaultMemIntf();
-  return 0;
 }
 
-static void test_createAtomicLock(void ** state)
+START_TEST(test_createAtomicLock)
+  {
+    const IThread_t * const ti = getThreadIntf();
+    K_Status_e result;
+
+    OsAtomicLock_t lock = ti->createALock();
+    ck_assert(lock != NULL);
+
+    ck_assert_int_eq(lock->isBusy, THREAD_LOCK_AVAILABLE);
+    result = ti->destroyALock(lock);
+    ck_assert_int_eq(result, K_Status_OK);
+  }
+END_TEST
+
+START_TEST(test_lockAndUnlockAtomicLock)
+  {
+    const IThread_t * const ti = getThreadIntf();
+
+    OsAtomicLock_t lock = ti->createALock();
+    ck_assert(lock != NULL);
+
+    ck_assert_int_eq(lock->isBusy, THREAD_LOCK_AVAILABLE);
+    K_Status_e result = ti->lockAtomic(lock);
+
+    ck_assert_int_eq(result, K_Status_OK);
+    ck_assert_int_eq(lock->isBusy, THREAD_LOCK_BUSY);
+    result = ti->trylockAtomic(lock);
+    ck_assert_int_eq(result, K_Status_Locked);
+    result = ti->unlockAtomic(lock);
+    ck_assert_int_eq(result, K_Status_OK);
+    ck_assert_int_eq(lock->isBusy, THREAD_LOCK_AVAILABLE);
+
+    result = ti->destroyALock(lock);
+    ck_assert_int_eq(result, K_Status_OK);
+  }
+END_TEST
+
+START_TEST(test_atomicCallsWithNULL)
+  {
+    const IThread_t * const ti = getThreadIntf();
+
+    K_Status_e result = ti->lockAtomic(NULL);
+    ck_assert_int_eq(result, K_Status_Invalid_Param);
+    result = ti->unlockAtomic(NULL);
+    ck_assert_int_eq(result, K_Status_Invalid_Param);
+    result = ti->trylockAtomic(NULL);
+    ck_assert_int_eq(result, K_Status_Invalid_Param);
+    result = ti->destroyALock(NULL);
+    ck_assert_int_eq(result, K_Status_Invalid_Param);
+  }
+END_TEST
+
+Suite * osLockSuite(void)
 {
-  const IThread_t * const ti = getThreadIntf();
-  K_Status_e result;
+  Suite * s = suite_create("Os Lock Suite");
+  TCase * tc = frameworkCreateValgrindTestCase("Os Locks testcase");
 
-  OsAtomicLock_t lock = ti->createALock();
-  assert_non_null(lock);
+  tcase_add_checked_fixture(tc, localSetupLockTests, localTeardownLockTest);
 
-  assert_int_equal(lock->isBusy, THREAD_LOCK_AVAILABLE);
-  result = ti->destroyALock(lock);
-  assert_int_equal(result, K_Status_OK);
-}
+  tcase_set_timeout(tc, 3);
 
-static void test_lockAndUnlocktomicLock(void ** state)
-{
-  const IThread_t * const ti = getThreadIntf();
+  tcase_add_test(tc, test_createAtomicLock);
+  tcase_add_test(tc, test_lockAndUnlockAtomicLock);
+  tcase_add_test(tc, test_atomicCallsWithNULL);
 
-  OsAtomicLock_t lock = ti->createALock();
-  assert_non_null(lock);
+  suite_add_tcase(s, tc);
 
-  assert_int_equal(lock->isBusy, THREAD_LOCK_AVAILABLE);
-  K_Status_e result = ti->lockAtomic(lock);
+  return s;
 
-  assert_int_equal(result, K_Status_OK);
-  assert_int_equal(lock->isBusy, THREAD_LOCK_BUSY);
-  result = ti->trylockAtomic(lock);
-  assert_int_equal(result, K_Status_Locked);
-  result = ti->unlockAtomic(lock);
-  assert_int_equal(result, K_Status_OK);
-  assert_int_equal(lock->isBusy, THREAD_LOCK_AVAILABLE);
-
-  result = ti->destroyALock(lock);
-  assert_int_equal(result, K_Status_OK);
-}
-
-static void test_atomicCallsWithNULL(void ** state)
-{
-  const IThread_t * const ti = getThreadIntf();
-
-  K_Status_e result = ti->lockAtomic(NULL);
-  assert_int_equal(result, K_Status_Invalid_Param);
-  result = ti->unlockAtomic(NULL);
-  assert_int_equal(result, K_Status_Invalid_Param);
-  result = ti->trylockAtomic(NULL);
-  assert_int_equal(result, K_Status_Invalid_Param);
-  result = ti->destroyALock(NULL);
-  assert_int_equal(result, K_Status_Invalid_Param);
-}
-
-int lock_tests(void)
-{
-  const struct CMUnitTest tests[] = {
-    cmocka_unit_test(test_createAtomicLock),
-    cmocka_unit_test(test_lockAndUnlocktomicLock),
-    cmocka_unit_test(test_atomicCallsWithNULL),
-  };
-
-  return cmocka_run_group_tests(tests, localSetupLockTests, localTeardownLockTest);
 }

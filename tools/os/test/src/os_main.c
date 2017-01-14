@@ -6,14 +6,16 @@
  */
 
 #include "memtests.h"
+#include "locktests.h"
 
 int main(void)
 {
   frameworkInit();
 
   frameworkAddSuite(osMemSuite());
+  frameworkAddSuite(osLockSuite());
 
-  frameworkRun("OS_MEMORY_TESTS");
+  frameworkRun("OS_TESTS");
 
   return 0;
 }

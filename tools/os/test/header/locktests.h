@@ -8,6 +8,8 @@
 #ifndef OS_TEST_HEADER_LOCKTESTS_H_
 #define OS_TEST_HEADER_LOCKTESTS_H_
 
-int lock_tests(void);
+#include <tests/tests.h>
+
+Suite * osLockSuite(void);
 
 #endif /* OS_TEST_HEADER_LOCKTESTS_H_ */

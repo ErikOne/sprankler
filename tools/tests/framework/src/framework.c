@@ -17,9 +17,7 @@
 #include <common/k_types.h>
 #include <tests/tests.h>
 
-#ifdef VALGRIND
 #include <valgrind/memcheck.h>
-#endif
 
 struct TestSuite
 {
@@ -29,13 +27,11 @@ struct TestSuite
 
 static struct TestSuite * localSuites;
 
-#ifdef VALGRIND
 static uint64_t localLeakedUntilNow;
 static void localValgrindSetup(void);
 static void localValgrindTeardown(void);
 static void localResetMemleaks(void);
 static uint64_t localGetMemleaks(void);
-#endif
 
 static void localFreeSuites(void);
 
@@ -131,7 +127,6 @@ TCase * frameworkCreateTestCase(const char * name)
   return tcase_create(name);
 }
 
-#if VALGRIND
 TCase * frameworkCreateValgrindTestCase(const char * const name)
 {
   TCase * tc = tcase_create(name);
@@ -184,4 +179,3 @@ static void localValgrindTeardown()
     printf("(%lu bytes definitely lost)\n", leaked);
   }
 }
-#endif
