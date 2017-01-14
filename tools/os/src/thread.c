@@ -67,6 +67,72 @@ K_Status_e thread_destroyMutex(OsMutex_t mutex)
   return rc;
 }
 
+K_Status_e thread_lockMutex(OsMutex_t mutex)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+  const IThread_t * const ti = getThreadIntf();
+
+  if (mutex != NULL)
+  {
+    struct OsMutex * impl = mutex;
+    if (ti->trylockAtomic(impl->guard) == K_Status_OK)
+    {
+      rc = (pthread_mutex_lock(&impl->mutex) == 0)?K_Status_OK:K_Status_General_Error;
+      (void) ti->unlockAtomic(impl->guard);
+    }
+    else
+    {
+      rc = K_Status_Unexpected_State;
+    }
+  }
+
+  return rc;
+}
+
+K_Status_e thread_unlockMutex(OsMutex_t mutex)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+  const IThread_t * const ti = getThreadIntf();
+
+  if (mutex != NULL)
+  {
+    struct OsMutex * impl = mutex;
+    if (ti->trylockAtomic(impl->guard) == K_Status_OK)
+    {
+      rc = (pthread_mutex_unlock(&impl->mutex) == 0)?K_Status_OK:K_Status_General_Error;
+      (void) ti->unlockAtomic(impl->guard);
+    }
+    else
+    {
+      rc = K_Status_Unexpected_State;
+    }
+  }
+
+  return rc;
+}
+
+K_Status_e thread_trylockMutex(OsMutex_t mutex)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+  const IThread_t * const ti = getThreadIntf();
+
+  if (mutex != NULL)
+  {
+    struct OsMutex * impl = mutex;
+    if (ti->trylockAtomic(impl->guard) == K_Status_OK)
+    {
+      rc = (pthread_mutex_trylock(&impl->mutex) == 0)?K_Status_OK:K_Status_Unexpected_State;
+      (void) ti->unlockAtomic(impl->guard);
+    }
+    else
+    {
+      rc = K_Status_Unexpected_State;
+    }
+  }
+
+  return rc;
+}
+
 K_Status_e thread_lockAtomicLock(OsAtomicLock_t lock)
 {
   K_Status_e rc = K_Status_Invalid_Param;

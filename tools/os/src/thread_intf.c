@@ -10,17 +10,21 @@
 static IThread_t localIntf =
 {
 #ifndef UNITTESTS
-    .createMutex  = thread_createMutex,
-    .destroyMutex = thread_destroyMutex,
-#if 0
-    .lock         = thread_lock,
-    .unlock       = thread_unlock,
-    .tryLock      = thread_tryLock,
-#endif
+  .createALock   = thread_createAtomicLock,
+  .destroyALock  = thread_destroyAtomicLock,
+  .lockAtomic    = thread_lockAtomicLock,
+  .unlockAtomic  = thread_unlockAtomicLock,
+  .trylockAtomic = thread_trylockAtomicLock,
+
+  .createMutex   = thread_createMutex,
+  .destroyMutex  = thread_destroyMutex,
+  .lockMutex     = thread_lockMutex,
+  .unlockMutex   = thread_unlockMutex,
+  .trylockMutex  = thread_tryLockMutex,
 #endif
 };
 
-IThread_t *getThreadIntf(void)
+IThread_t * getThreadIntf(void)
 {
   return &localIntf;
 }

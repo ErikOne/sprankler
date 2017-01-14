@@ -20,7 +20,11 @@ void unittest_installDefaultThreadIntf()
   intf->lockAtomic = thread_lockAtomicLock;
   intf->unlockAtomic = thread_unlockAtomicLock;
   intf->trylockAtomic = thread_trylockAtomicLock;
-
+  intf->createMutex = thread_createMutex;
+  intf->destroyMutex = thread_destroyMutex;
+  intf->lockMutex = thread_lockMutex;
+  intf->unlockMutex = thread_unlockMutex;
+  intf->trylockMutex = thread_trylockMutex;
 }
 
 void unittest_uninstallDefaultThreadIntf()
@@ -32,7 +36,11 @@ void unittest_uninstallDefaultThreadIntf()
   intf->lockAtomic = NULL;
   intf->unlockAtomic = NULL;
   intf->trylockAtomic = NULL;
-
+  intf->createMutex = NULL;
+  intf->destroyMutex = NULL;
+  intf->lockMutex = NULL;
+  intf->unlockMutex = NULL;
+  intf->trylockMutex = NULL;
 }
 
 #endif

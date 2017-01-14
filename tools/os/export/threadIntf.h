@@ -46,11 +46,11 @@ typedef struct _thread_interface
 
   K_Status_e (* destroyMutex)(OsMutex_t mutex);
 
-  K_Status_e (* lock)(OsMutex_t mutex);
+  K_Status_e (* lockMutex)(OsMutex_t mutex);
 
-  K_Status_e (* unlock)(OsMutex_t mutex);
+  K_Status_e (* unlockMutex)(OsMutex_t mutex);
 
-  K_Status_e (* tryLock)(OsMutex_t mutex);
+  K_Status_e (* trylockMutex)(OsMutex_t mutex);
 
 } IThread_t;
 

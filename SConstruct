@@ -25,6 +25,9 @@ AddOption('--target', dest='target', nargs=1, choices=OPTION_TARGET_CHOICES, act
 
 AddOption('--buildtype', dest='build_type', nargs=1, choices=OPTION_BUILDTYPE_CHOICES, action="store",default='production',
     help='Sets the build type: valid choices are [production, unittests].  The default is production.')
+    
+AddOption('--debugbuild', dest='debug_build',action="store_true",default=False,
+    help='Is the debug enabled on this build')
 
 basic_variables = {
     'LIBS'          : [],
@@ -39,6 +42,10 @@ basic_variables = {
     'targetEnv'     : False,
     'isHostToolsEnv': False
 }
+
+if GetOption("debug_build") == True:
+  basic_variables['CCFLAGS'].append("-g3")
+
 
 target_variables = copy.deepcopy(basic_variables)
 target_variables['BUILDROOT'] = "#/do/"+GetOption('target')
