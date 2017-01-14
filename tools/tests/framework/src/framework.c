@@ -14,22 +14,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <common/one_types.h>
-#include <testframework/tests.h>
+#include <common/k_types.h>
+#include <tests/tests.h>
+
+#ifdef VALGRIND
 #include <valgrind/memcheck.h>
+#endif
 
 struct TestSuite
 {
-  Suite* suite;
-  struct TestSuite *next;
+  Suite * suite;
+  struct TestSuite * next;
 };
 
-static struct TestSuite *localSuites;
+static struct TestSuite * localSuites;
+
+#ifdef VALGRIND
 static uint64_t localLeakedUntilNow;
 static void localValgrindSetup(void);
 static void localValgrindTeardown(void);
 static void localResetMemleaks(void);
 static uint64_t localGetMemleaks(void);
+#endif
 
 static void localFreeSuites(void);
 
@@ -38,10 +44,10 @@ void frameworkInit(void)
   localSuites = NULL;
 }
 
-OneStatus_t frameworkAddSuite(Suite* const suite)
+K_Status_e frameworkAddSuite(Suite * const suite)
 {
-  OneStatus_t rc = One_Failure;
-  struct TestSuite *newSuite = (struct TestSuite *) malloc(sizeof(struct TestSuite));
+  K_Status_e rc = K_Status_General_Error;
+  struct TestSuite * newSuite = (struct TestSuite *) malloc(sizeof(struct TestSuite));
   if (newSuite != NULL)
   {
     memset(newSuite, 0, sizeof(struct TestSuite));
@@ -62,36 +68,36 @@ OneStatus_t frameworkAddSuite(Suite* const suite)
       tmp->next = newSuite;
     }
 
-    rc = One_Success;
+    rc = K_Status_OK;
   }
 
   return rc;
 }
 
-void frameworkRun(const char* const suiteName)
+void frameworkRun(const char * const suiteName)
 {
   if (localSuites != NULL)
   {
-    SRunner *sr = srunner_create(NULL);
-    struct TestSuite *tmp = localSuites;
+    SRunner * sr = srunner_create(NULL);
+    struct TestSuite * tmp = localSuites;
     char_t filename[1024];
 
     /* Jenkins sets this environment variable when it runs, I deliberatly don't use the osutils interface,
      * to avoid all the tests to become dependent on osutils, which is against unit tests priciples.*/
 
-    const char_t* resultsdir = getenv(ENV_RESULTS_DIR);
+    const char_t * resultsdir = getenv(ENV_RESULTS_DIR);
 
     if (resultsdir != NULL)
     {
-      snprintf(filename,1024,"%s/%s_testresults.xml",resultsdir,suiteName);
+      snprintf(filename, 1024, "%s/%s_testresults.xml", resultsdir, suiteName);
     }
     else
     {
-      snprintf(filename,1024,"/tmp/%s_testresults.xml",suiteName);
+      snprintf(filename, 1024, "/tmp/%s_testresults.xml", suiteName);
     }
 
     srunner_set_fork_status(sr, CK_FORK_GETENV);
-    srunner_set_xml(sr,filename);
+    srunner_set_xml(sr, filename);
 
     while (tmp != NULL)
     {
@@ -110,7 +116,7 @@ static void localFreeSuites(void)
 
   while (localSuites != NULL)
   {
-    struct TestSuite *tmp = localSuites;
+    struct TestSuite * tmp = localSuites;
     localSuites = tmp->next;
 
     /* The actual suites pointed to by tmp->suite is freed by srunner_free, this */
@@ -120,60 +126,62 @@ static void localFreeSuites(void)
   }
 }
 
-TCase *frameworkCreateTestCase(const char *name)
+TCase * frameworkCreateTestCase(const char * name)
 {
   return tcase_create(name);
 }
 
-TCase *frameworkCreateValgrindTestCase(const char * const name)
+#if VALGRIND
+TCase * frameworkCreateValgrindTestCase(const char * const name)
 {
-    TCase *tc = tcase_create(name);
-    tcase_set_timeout(tc, 0);
-    tcase_add_checked_fixture(tc, localValgrindSetup, localValgrindTeardown);
+  TCase * tc = tcase_create(name);
+  tcase_set_timeout(tc, 0);
+  tcase_add_checked_fixture(tc, localValgrindSetup, localValgrindTeardown);
 
-    return tc;
+  return tc;
 }
 
 static void localResetMemleaks(void)
 {
-    localLeakedUntilNow = localGetMemleaks();
+  localLeakedUntilNow = localGetMemleaks();
 }
 
 static uint64_t localGetMemleaks(void)
 {
-    uint64_t leaked;
-    uint64_t dubious;
-    uint64_t reachable;
-    uint64_t suppressed;
+  uint64_t leaked;
+  uint64_t dubious;
+  uint64_t reachable;
+  uint64_t suppressed;
 
-    VALGRIND_DO_LEAK_CHECK;
-    VALGRIND_COUNT_LEAKS(leaked, dubious, reachable, suppressed);
+  VALGRIND_DO_LEAK_CHECK;
+  VALGRIND_COUNT_LEAKS(leaked, dubious, reachable, suppressed);
 
-    if (leaked < localLeakedUntilNow)
-    {
-        printf("VALGRIND STRANGE SITUATION, reset everything\n");
-        localLeakedUntilNow = leaked;
-    }
+  if (leaked < localLeakedUntilNow)
+  {
+    printf("VALGRIND STRANGE SITUATION, reset everything\n");
+    localLeakedUntilNow = leaked;
+  }
 
-    return leaked;
+  return leaked;
 }
 
 static void localValgrindSetup()
 {
-    if (RUNNING_ON_VALGRIND)
-    {
-        printf("RUNNING VALGRIND SETUP\n");
-        localResetMemleaks();
-    }
+  if (RUNNING_ON_VALGRIND)
+  {
+    printf("RUNNING VALGRIND SETUP\n");
+    localResetMemleaks();
+  }
 }
 
 static void localValgrindTeardown()
 {
-    if (RUNNING_ON_VALGRIND)
-    {
-        printf("RUNNING VALGRIND TEARDOWN.\n");
-        int64_t leaked = localGetMemleaks() - localLeakedUntilNow;
-        fail_unless(leaked == 0,"There are %llu bytes leaked in this test\n",leaked);
-        printf("(%lu bytes definitely lost)\n", leaked);
-    }
+  if (RUNNING_ON_VALGRIND)
+  {
+    printf("RUNNING VALGRIND TEARDOWN.\n");
+    int64_t leaked = localGetMemleaks() - localLeakedUntilNow;
+    fail_unless(leaked == 0, "There are %llu bytes leaked in this test\n", leaked);
+    printf("(%lu bytes definitely lost)\n", leaked);
+  }
 }
+#endif

@@ -2,7 +2,7 @@ Import('env')
 
 
 SUBDIRS = [
-  'cmocka',
+  'check',
 ]
 
 env.SConscript(dirs=SUBDIRS, name='Sconscript', exports='env')

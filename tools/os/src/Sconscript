@@ -6,9 +6,16 @@ myEnv = CopyEnv(env)
 
 mem_intf = ['mem_intf.c']
 mem_impl = ['mem.c']
- 
- 
-lib = myEnv.Lib('mem',mem_impl)
-intf = myEnv.Lib('memintf',mem_intf)
 
-myEnv.Alias('osa',[lib, intf])   
+memlib = myEnv.Lib('mem',mem_impl)
+memintf = myEnv.Lib('memintf',mem_intf)
+
+thread_intf = ['thread_intf.c']
+thread_impl = ['thread.c']
+ 
+threadlib = myEnv.Lib('thread',thread_impl)
+threadintf = myEnv.Lib('threadintf',thread_intf)
+
+
+
+myEnv.Alias('osa',[memlib,threadlib, memintf,threadintf])   

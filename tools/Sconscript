@@ -3,6 +3,7 @@ Import('env')
 
 SUBDIRS = [
   'os',
+  'tests',
   'third-party',
 ]
 

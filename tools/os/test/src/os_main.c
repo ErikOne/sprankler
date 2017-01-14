@@ -5,11 +5,15 @@
  *      Author: erik
  */
 
-
 #include "memtests.h"
 
-int main(void) {
-  mem_tests();
+int main(void)
+{
+  frameworkInit();
+
+  frameworkAddSuite(osMemSuite());
+
+  frameworkRun("OS_MEMORY_TESTS");
 
   return 0;
 }

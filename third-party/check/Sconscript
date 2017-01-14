@@ -1,0 +1,38 @@
+Import('env')
+
+import multiprocessing
+
+myEnv = env.Clone()
+
+tarball       = "check-0.9.9.tar.gz"
+unpack_subdir = "check-0.9.9"
+
+work_dir = myEnv.Dir('.')
+src_dir = myEnv.Dir(unpack_subdir, work_dir)
+
+check_inc = myEnv.File("include/check/check.h",myEnv['THIRDPARTY_ROOT'])
+check_so_0_0_0 = myEnv.File("lib/libcheck.so.0.0.0",myEnv['THIRDPARTY_ROOT'])
+check_so_0 = myEnv.File("lib/libcheck.so.0",myEnv['THIRDPARTY_ROOT'])
+check_so = myEnv.File("lib/libcheck.so",myEnv['THIRDPARTY_ROOT'])
+
+jobs = 2*multiprocessing.cpu_count() + 1
+myEnv.Command([check_inc,check_so_0_0_0,check_so_0,check_so],tarball,
+  [
+    'rm -rf %s' %src_dir.path,
+    'mkdir -p %s' %src_dir.path,
+    'mkdir -p %s' %myEnv['THIRDPARTY_LIB_DIR'],
+    'mkdir -p %s/check' %myEnv['THIRDPARTY_INC_DIR'],
+    
+    Delete('${TARGETS}'),
+    
+    '$TAR xf $SOURCE -C %s' % work_dir.path,
+    'cd %s && ./configure' %src_dir.path,
+    'cd %s && make -j %d ' %(src_dir.path, jobs),
+    'cd %s && cp src/.libs/libcheck.so.0.0.0 $THIRDPARTY_LIB_DIR.abspath' %(src_dir.path),
+    'cd %s && cp src/check.h %s' %(src_dir.path, check_inc.abspath),
+    'cd $THIRDPARTY_LIB_DIR && ln -s libcheck.so.0.0.0 libcheck.so.0',
+    'cd $THIRDPARTY_LIB_DIR && ln -s libcheck.so.0 libcheck.so',
+  ]
+)
+
+myEnv.Alias("check",[check_inc,check_so])

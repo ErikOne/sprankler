@@ -9,6 +9,21 @@
 #define OS_HEADER_THREAD_IMPL_H_
 
 #include <os/threadIntf.h>
+#include <pthread.h>
+
+#define THREAD_LOCK_AVAILABLE  0xDEADBEEF
+#define THREAD_LOCK_BUSY       0xBEEFDEAD
+
+struct OsMutex
+{
+  OsAtomicLock_t guard;
+  pthread_mutex_t mutex;
+};
+
+struct OsAtomicLock
+{
+  volatile uint32_t isBusy;
+};
 
 OsMutex_t thread_createMutex(void);
 K_Status_e thread_destroyMutex(OsMutex_t mutex);
@@ -19,9 +34,8 @@ K_Status_e thread_tryLockMutex(OsMutex_t mutex);
 OsAtomicLock_t thread_createAtomicLock(void);
 K_Status_e thread_destroyAtomicLock(OsAtomicLock_t lock);
 
-K_Status_e thread_atomiclockLock(OsAtomicLock_t lock);
-K_Status_e thread_atomiclockUnlock(OsAtomicLock_t lock);
-K_Status_e thread_atomiclockTryLock(OsAtomicLock_t lock);
-
+K_Status_e thread_lockAtomicLock(OsAtomicLock_t lock);
+K_Status_e thread_unlockAtomicLock(OsAtomicLock_t lock);
+K_Status_e thread_trylockAtomicLock(OsAtomicLock_t lock);
 
 #endif /* OS_HEADER_THREAD_IMPL_H_ */

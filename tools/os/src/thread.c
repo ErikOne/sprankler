@@ -9,26 +9,11 @@
 
 #include <os/memIntf.h>
 
-#include <pthread.h>
 #include <errno.h>
 #include <signal.h>
 
-#define THREAD_LOCK_AVAILABLE  0xDEADBEEF
-#define THREAD_LOCK_BUSY       0xBEEFDEAD
-
-struct OsMutex
-{
-  OsAtomicLock_t guard;
-  pthread_mutex_t mutex;
-};
-
-struct OsAtomicLock
-{
-  volatile uint32_t isBusy;
-};
-
 static K_Status_e localMarkLockBusy(OsAtomicLock_t lock);
-static K_Status_e localMarkLockFree(OsAtomicLock_t lock);
+static K_Status_e localMarkLockAvailable(OsAtomicLock_t lock);
 
 OsMutex_t thread_createMutex(void)
 {
@@ -70,13 +55,52 @@ K_Status_e thread_destroyMutex(OsMutex_t mutex)
       OsAtomicLock_t guard = mutex->guard;
       mutex->guard = NULL;
 
-      localMarkLockFree(guard);
+      localMarkLockAvailable(guard);
       thread_destroyAtomicLock(guard);
       mem->memset(mutex, 0, sizeof(struct OsMutex));
       mem->free(mutex);
 
       rc = K_Status_OK;
     }
+  }
+
+  return rc;
+}
+
+K_Status_e thread_lockAtomicLock(OsAtomicLock_t lock)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+
+  if (lock != NULL)
+  {
+    while (rc != K_Status_OK)
+    {
+      rc = thread_trylockAtomicLock(lock);
+    }
+  }
+
+  return rc;
+}
+
+K_Status_e thread_unlockAtomicLock(OsAtomicLock_t lock)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+
+  if (lock != NULL)
+  {
+    rc = localMarkLockAvailable(lock);
+  }
+
+  return rc;
+}
+
+K_Status_e thread_trylockAtomicLock(OsAtomicLock_t lock)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+
+  if (lock != NULL)
+  {
+    rc = localMarkLockBusy(lock);
   }
 
   return rc;
@@ -97,7 +121,7 @@ OsAtomicLock_t thread_createAtomicLock(void)
 
 K_Status_e thread_destroyAtomicLock(OsAtomicLock_t lock)
 {
-  K_Status_e rc = K_Status_General_Error;
+  K_Status_e rc = K_Status_Invalid_Param;
 
   if (lock != NULL)
   {
@@ -114,28 +138,45 @@ K_Status_e thread_destroyAtomicLock(OsAtomicLock_t lock)
 
 static K_Status_e localMarkLockBusy(OsAtomicLock_t lock)
 {
-  K_Status_e rc = K_Status_Locked;
+  K_Status_e rc = K_Status_Invalid_Param;
 
   if (lock != NULL)
   {
-    if (__sync_val_compare_and_swap(&lock->isBusy, THREAD_LOCK_AVAILABLE, THREAD_LOCK_BUSY) == THREAD_LOCK_AVAILABLE)
+    int value = __sync_val_compare_and_swap(&lock->isBusy, THREAD_LOCK_AVAILABLE, THREAD_LOCK_BUSY);
+    switch (value)
     {
-      rc = K_Status_OK;
+      case THREAD_LOCK_AVAILABLE:
+        rc = K_Status_OK;
+        break;
+      case THREAD_LOCK_BUSY:
+        rc = K_Status_Locked;
+        break;
+      default:
+        rc = K_Status_General_Error;
+        break;
     }
   }
   return rc;
-
 }
 
-static K_Status_e localMarkLockFree(OsAtomicLock_t lock)
+static K_Status_e localMarkLockAvailable(OsAtomicLock_t lock)
 {
-  K_Status_e rc = K_Status_Locked;
+  K_Status_e rc = K_Status_Invalid_Param;
 
   if (lock != NULL)
   {
-    if (__sync_val_compare_and_swap(&lock->isBusy, THREAD_LOCK_BUSY, THREAD_LOCK_AVAILABLE) == THREAD_LOCK_BUSY)
+    int value = __sync_val_compare_and_swap(&lock->isBusy, THREAD_LOCK_BUSY, THREAD_LOCK_AVAILABLE);
+    switch (value)
     {
-      rc = K_Status_OK;
+      case THREAD_LOCK_BUSY:
+        rc = K_Status_OK;
+        break;
+      case THREAD_LOCK_AVAILABLE:
+        rc = K_Status_Unexpected_State;
+        break;
+      default:
+        rc = K_Status_General_Error;
+        break;
     }
   }
   return rc;

@@ -4,25 +4,42 @@ from custombuilder import CopyEnv
 myEnv = CopyEnv(env)
 
 
+mem_defaults_sources = [
+	'mem_defaults.c'
+]
+
+myEnv.Lib('memdefimpl',mem_defaults_sources,TESTBUILD=1)
+
+thread_defaults_sources = [
+	'thread_defaults.c'
+]
+
+myEnv.Lib('threaddefimpl',thread_defaults_sources,TESTBUILD=1)
+
+
+
 osatestlib_sources = [ 
-	'memtests.c',	
+	'memtests.c',
 ]
 
 myEnv.Lib('osatests',osatestlib_sources,TESTBUILD=1)
+
 
 our_libs = [
 #The library containing the tests
 	'osatests',
 	
 #Libraries to get everything linked	
-	'memintf',
-	'mem',
+	'memintf','mem','memdefimpl',
+	'threadintf','thread','threaddefimpl',
+	'testframework',
 	]
 
 libs = our_libs[:]
 
-system_libs = ['pthread','rt','cmocka']
+system_libs = ['pthread','rt','check']
  
 ostests = myEnv.App('osa-tests',source='os_main.c',LIBS=libs,TESTBUILD=1,SYSTEM_LIBS=system_libs)
 
 myEnv.Alias('unittests',ostests)
+myEnv.Alias('ostests',ostests)

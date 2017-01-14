@@ -8,7 +8,8 @@
 #ifndef OS_TEST_HEADER_MEMTESTS_H_
 #define OS_TEST_HEADER_MEMTESTS_H_
 
-int mem_tests(void);
+#include <tests/tests.h>
 
+Suite * osMemSuite(void);
 
 #endif /* OS_TEST_HEADER_MEMTESTS_H_ */
