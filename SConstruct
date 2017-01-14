@@ -29,7 +29,7 @@ AddOption('--buildtype', dest='build_type', nargs=1, choices=OPTION_BUILDTYPE_CH
 basic_variables = {
     'LIBS'          : [],
     'SHARED_LIBS'   : ['-lrt', '-lpthread' ],
-    'CCFLAGS'       : [ '-Wall','-Werror' ],
+    'CCFLAGS'       : [ '-Wall','-Werror', '-Wstrict-prototypes'],
     'CFLAGS'        : [],
     'CXXFLAGS'      : [],
     'CPPPATH'       : [],

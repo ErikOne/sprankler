@@ -29,7 +29,7 @@ typedef enum
   K_Status_General_Error = 2,
   K_Status_Invalid_Param = 3,
   K_Status_Locked = 4,
-  K_Status_Unexpected_State = 5,
+  K_Status_Unexpected_State = 5
 
 } K_Status_e;
 
