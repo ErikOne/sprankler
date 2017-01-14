@@ -155,6 +155,14 @@ static uint64_t localGetMemleaks(void)
   {
     printf("VALGRIND STRANGE SITUATION, reset everything\n");
     localLeakedUntilNow = leaked;
+
+    /* To avoid compiler warnings */
+    if (dubious + reachable + suppressed)
+    {
+      dubious = 0;
+      reachable = 0;
+      suppressed = 0;
+    }
   }
 
   return leaked;

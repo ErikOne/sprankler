@@ -33,6 +33,7 @@ typedef enum
 
 } K_Status_e;
 
-typedef unsigned char char_t;
+typedef unsigned char uchar_t;
+typedef char char_t;
 
 #endif /* COMMON_EXPORT_K_TYPES_H_ */
