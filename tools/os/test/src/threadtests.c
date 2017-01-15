@@ -105,6 +105,7 @@ START_TEST(test_atomiclocksInMutiThread)
     }
 
     ck_assert(data->value == nbrOfThreads * data->loop);
+    ck_assert(ti->destroyALock(data->alock) == K_Status_OK);
     mem->free(data);
 
   }
