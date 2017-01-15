@@ -16,11 +16,17 @@ thread_defaults_sources = [
 
 myEnv.Lib('threaddefimpl',thread_defaults_sources,TESTBUILD=1)
 
+utils_defaults_sources = [
+	'utils_defaults.c'
+]
+
+myEnv.Lib('utilsdefimpl',utils_defaults_sources,TESTBUILD=1)
 
 
 osatestlib_sources = [ 
 	'memtests.c',
 	'locktests.c',
+	'threadtests.c',
 ]
 
 myEnv.Lib('osatests',osatestlib_sources,TESTBUILD=1)
@@ -33,6 +39,7 @@ our_libs = [
 #Libraries to get everything linked	
 	'memintf','mem','memdefimpl',
 	'threadintf','thread','threaddefimpl',
+	'utilsintf','utils','utilsdefimpl',
 	'testframework',
 	]
 

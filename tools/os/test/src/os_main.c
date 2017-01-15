@@ -7,6 +7,7 @@
 
 #include "memtests.h"
 #include "locktests.h"
+#include "threadtests.h"
 
 int main(void)
 {
@@ -14,6 +15,7 @@ int main(void)
 
   frameworkAddSuite(osMemSuite());
   frameworkAddSuite(osLockSuite());
+  frameworkAddSuite(osThreadSuite());
 
   frameworkRun("OS_TESTS");
 

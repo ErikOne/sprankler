@@ -12,5 +12,7 @@ void unittest_installDefaultMemIntf(void);
 void unittest_uninstallDefaultMemIntf(void);
 void unittest_installDefaultThreadIntf(void);
 void unittest_uninstallDefaultThreadIntf(void);
+void unittest_installDefaultUtilsIntf(void);
+void unittest_uninstallDefaultUtilsIntf(void);
 
 #endif /* OS_TEST_EXPORT_UNITTESTOSDEFAULTS_H_ */

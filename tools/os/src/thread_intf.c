@@ -20,7 +20,7 @@ static IThread_t localIntf =
   .destroyMutex  = thread_destroyMutex,
   .lockMutex     = thread_lockMutex,
   .unlockMutex   = thread_unlockMutex,
-  .trylockMutex  = thread_tryLockMutex,
+  .trylockMutex  = thread_trylockMutex,
 #endif
 };
 

@@ -25,6 +25,10 @@ void unittest_installDefaultThreadIntf()
   intf->lockMutex = thread_lockMutex;
   intf->unlockMutex = thread_unlockMutex;
   intf->trylockMutex = thread_trylockMutex;
+  intf->createThread = thread_createThread;
+  intf->destroyThread = thread_destroyThread;
+  intf->joinThread = thread_joinThread;
+  intf->yieldThread = thread_yieldThread;
 }
 
 void unittest_uninstallDefaultThreadIntf()
@@ -41,6 +45,12 @@ void unittest_uninstallDefaultThreadIntf()
   intf->lockMutex = NULL;
   intf->unlockMutex = NULL;
   intf->trylockMutex = NULL;
+
+  intf->createThread = NULL;
+  intf->destroyThread = NULL;
+  intf->joinThread = NULL;
+  intf->yieldThread = NULL;
+
 }
 
 #endif

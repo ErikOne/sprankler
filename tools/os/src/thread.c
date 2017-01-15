@@ -14,6 +14,9 @@
 
 static K_Status_e localMarkLockBusy(OsAtomicLock_t lock);
 static K_Status_e localMarkLockAvailable(OsAtomicLock_t lock);
+static void localFreeGuard(struct OsAtomicLock * alock);
+static K_Status_e localJoinThread(struct OsThread * impl);
+static void * localStartThreadWithBlockedSignals(void * data);
 
 OsMutex_t thread_createMutex(void)
 {
@@ -49,14 +52,14 @@ K_Status_e thread_destroyMutex(OsMutex_t mutex)
 
   if (mutex != NULL)
   {
-    if (localMarkLockBusy(mutex->guard) == K_Status_OK)
+    rc = localMarkLockBusy(mutex->guard);
+    if (rc == K_Status_OK)
     {
       const IMem_t * const mem = getMemIntf();
       OsAtomicLock_t guard = mutex->guard;
       mutex->guard = NULL;
 
-      localMarkLockAvailable(guard);
-      thread_destroyAtomicLock(guard);
+      localFreeGuard(guard);
       mem->memset(mutex, 0, sizeof(struct OsMutex));
       mem->free(mutex);
 
@@ -193,13 +196,101 @@ K_Status_e thread_destroyAtomicLock(OsAtomicLock_t lock)
   {
     if (localMarkLockBusy(lock) == K_Status_OK)
     {
-      const IMem_t * const mem = getMemIntf();
-      mem->free(lock);
+      localFreeGuard(lock);
       rc = K_Status_OK;
     }
   }
 
   return rc;
+}
+
+OsThread_t thread_createThread(THREAD_FUNCTION f, void * data)
+{
+  struct OsThread * newThread = NULL;
+
+  if (f != NULL)
+  {
+    const IMem_t * const mem = getMemIntf();
+
+    newThread = (struct OsThread *) mem->malloc(sizeof(struct OsThread));
+    if (newThread != NULL)
+    {
+      mem->memset(newThread, 0, sizeof(struct OsThread));
+      newThread->guard = thread_createAtomicLock();
+
+      if (newThread->guard != NULL)
+      {
+        newThread->function = f;
+        newThread->userData = data;
+
+        if (pthread_create(&newThread->thread, NULL, localStartThreadWithBlockedSignals, newThread) != 0)
+        {
+          thread_destroyThread(newThread);
+          newThread = NULL;
+        }
+      }
+      else
+      {
+        mem->free(newThread);
+        newThread = NULL;
+      }
+    }
+  }
+
+  return newThread;
+}
+
+K_Status_e thread_destroyThread(OsThread_t t)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+
+  struct OsThread * impl = (struct OsThread *) t;
+  if (impl != NULL)
+  {
+    rc = localMarkLockBusy(impl->guard);
+    if (rc == K_Status_OK)
+    {
+      const IMem_t * const mem = getMemIntf();
+      if (localJoinThread(impl) == K_Status_OK)
+      {
+        rc = K_Status_OK;
+      }
+
+      OsAtomicLock_t guard = impl->guard;
+      impl->guard = NULL;
+
+      localFreeGuard(guard);
+      mem->free(impl);
+    }
+  }
+  return rc;
+}
+
+K_Status_e thread_joinThread(OsThread_t thread)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+
+  struct OsThread * impl = thread;
+  if (impl != NULL)
+  {
+    rc = localMarkLockBusy(impl->guard);
+
+    if (rc == K_Status_OK)
+    {
+      if (pthread_join(impl->thread, NULL) == 0)
+      {
+        rc = K_Status_OK;
+      }
+      localMarkLockAvailable(impl->guard);
+    }
+  }
+
+  return rc;
+}
+
+K_Status_e thread_yieldThread(void)
+{
+  return (sched_yield() == 0)?K_Status_OK:K_Status_General_Error;
 }
 
 static K_Status_e localMarkLockBusy(OsAtomicLock_t lock)
@@ -246,4 +337,35 @@ static K_Status_e localMarkLockAvailable(OsAtomicLock_t lock)
     }
   }
   return rc;
+}
+
+static K_Status_e localJoinThread(struct OsThread * impl)
+{
+  return (pthread_join(impl->thread, NULL) == 0)?K_Status_OK:K_Status_General_Error;
+}
+
+static void localFreeGuard(struct OsAtomicLock * alock)
+{
+  const IMem_t * const mem = getMemIntf();
+  mem->free(alock);
+}
+
+static void * localStartThreadWithBlockedSignals(void * data)
+{
+  struct OsThread * impl = (struct OsThread *) data;
+  void * result = NULL;
+
+  if ((impl != NULL) && (impl->function != NULL))
+  {
+    sigset_t set;
+    if (sigfillset(&set) == 0)
+    {
+      if (pthread_sigmask(SIG_SETMASK, &set, NULL) == 0)
+      {
+        result = impl->function(impl->userData);
+      }
+    }
+  }
+
+  return result;
 }

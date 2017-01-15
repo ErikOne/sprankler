@@ -134,6 +134,31 @@ START_TEST(test_mutexLock)
   ck_assert_int_eq(result, K_Status_OK);
 END_TEST
 
+START_TEST(test_destroyMutexWithGuardLocked)
+  const IThread_t * const ti = getThreadIntf();
+  K_Status_e result;
+
+  OsMutex_t mutex = ti->createMutex();
+  ck_assert(mutex != NULL);
+
+  struct OsMutex * impl = mutex;
+  ck_assert(impl != NULL);
+
+  ck_assert(impl->guard != NULL);
+  /* Now lock the guard */
+  result = ti->lockAtomic(impl->guard);
+  ck_assert_int_eq(result, K_Status_OK);
+
+  result = ti->destroyMutex(mutex);
+  ck_assert_int_eq(result, K_Status_Locked);
+
+  result = ti->unlockAtomic(impl->guard);
+  ck_assert_int_eq(result, K_Status_OK);
+
+  result = ti->destroyMutex(mutex);
+  ck_assert_int_eq(result, K_Status_OK);
+END_TEST
+
 Suite * osLockSuite(void)
 {
   Suite * s = suite_create("Os Lock Suite");

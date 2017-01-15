@@ -10,8 +10,11 @@
 
 #include <common/k_types.h>
 
+typedef void * (* THREAD_FUNCTION)(void * data);
+
 typedef struct OsMutex * OsMutex_t;
 typedef struct OsAtomicLock * OsAtomicLock_t;
+typedef struct OsThread * OsThread_t;
 
 typedef struct _thread_interface
 {
@@ -51,6 +54,14 @@ typedef struct _thread_interface
   K_Status_e (* unlockMutex)(OsMutex_t mutex);
 
   K_Status_e (* trylockMutex)(OsMutex_t mutex);
+
+  OsThread_t (* createThread)(THREAD_FUNCTION f, void * userData);
+
+  K_Status_e (* destroyThread)(OsThread_t thread);
+
+  K_Status_e (* joinThread)(OsThread_t thread);
+
+  K_Status_e (* yieldThread)(void);
 
 } IThread_t;
 

@@ -16,6 +16,13 @@ thread_impl = ['thread.c']
 threadlib = myEnv.Lib('thread',thread_impl)
 threadintf = myEnv.Lib('threadintf',thread_intf)
 
+utils_intf = ['utils_intf.c']
+utils_impl = ['utils.c']
+ 
+utilslib = myEnv.Lib('utils',utils_impl)
+utilsintf = myEnv.Lib('utilsintf',utils_intf)
 
 
-myEnv.Alias('osa',[memlib,threadlib, memintf,threadintf])   
+
+
+myEnv.Alias('osa',[memlib,threadlib,utilslib, memintf,threadintf, utilsintf])   
