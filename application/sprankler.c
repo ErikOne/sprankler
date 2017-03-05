@@ -1,23 +1,22 @@
-#include <os/memIntf.h>
-#include <os/threadIntf.h>
+#include <os/utilsIntf.h>
+#include <platform/platformIntf.h>
 
-#include <stdio.h>
+#include  <logging/logging.h>
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
-  const IMem_t *const mem = getMemIntf();
+  const IPlatform_t * const platform = getPlatformIntf();
 
-  uint8_t * data = (uint8_t *) mem->malloc(1000);
-  size_t i;
-
-  for (i= 0 ; i < 1000; i++)
+  if (platform->init() == K_Status_OK)
   {
-    printf("%u\n",*(data+i));
+    INFO("Successfully started system\n");
+    const IUtils_t * const utils = getUtilsIntf();
+
+    while (K_True)
+    {
+      utils->sleep(1);
+    }
   }
 
-
-
-  mem->free(data);
-
-	return 0;
+  return 0;
 }

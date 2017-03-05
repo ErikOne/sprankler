@@ -1,0 +1,21 @@
+Import('env')
+
+myEnv=env.Clone()
+
+intf_sources = [
+                "logging_intf.c",
+               ]
+
+lib_sources =  [
+  "logging.c"
+]
+  
+libdata = [
+  ['logging',    lib_sources],
+  ['loggingintf',intf_sources],
+]
+
+for tupple in libdata:
+   name,sources = tupple
+   lib = myEnv.Lib(name,sources)
+   myEnv.Alias('logging',lib)

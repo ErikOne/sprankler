@@ -1,11 +1,7 @@
-Import('env')
-
+Import ('env')
 
 SUBDIRS = [
-  'logging',
-  'os',
-  'tests',
-  'third-party',
+  'src',
 ]
 
 env.SConscript(dirs=SUBDIRS, name='Sconscript', exports='env')

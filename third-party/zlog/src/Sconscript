@@ -1,0 +1,48 @@
+Import('env')
+
+myEnv=env.Clone()
+lib_sources = [
+  "buf.c",
+  "category.c",
+  "category_table.c",
+  "conf.c",
+  "event.c",
+  "format.c",
+  "level.c",
+  "level_list.c",
+  "mdc.c",
+  "record.c",
+  "record_table.c",
+  "rotater.c",
+  "rule.c",
+  "spec.c",
+  "thread.c",
+  "zc_arraylist.c",
+  "zc_hashtable.c",
+  "zc_profile.c",
+  "zc_util.c",
+  "zlog.c"
+]
+
+zlog_inc = myEnv.File("zlog.h",myEnv.Dir('.'))
+zlog_lib = myEnv.File("libzlog.so",myEnv.Dir('.'))
+
+
+commands=[]
+link_command = '${PURE_CC} $CCFLAGS $CFLAGS -o %s -shared -fPIC ' %zlog_lib.abspath
+
+for source in lib_sources:
+  source_file = myEnv.File(source,myEnv.Dir('.')).srcnode().path
+  object_file = myEnv.File(source.replace(".c",".o")).path
+  
+  commands.append('${PURE_CC}  $CFLAGS $CCFLAGS -c -fPIC -I%s %s -o %s' %(myEnv.Dir('.').srcnode().path, source_file, object_file) )
+  link_command += "%s " %object_file
+
+commands.append(link_command)
+
+lib = myEnv.Command(zlog_lib,lib_sources,commands)
+
+myEnv.Install('${THIRDPARTY_ROOT}/lib' ,zlog_lib)
+myEnv.Install('${THIRDPARTY_ROOT}/include/zlog' ,zlog_inc)
+
+myEnv.Alias("zlog",lib)

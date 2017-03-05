@@ -1,0 +1,32 @@
+Import('env')
+
+myEnv=env.Clone()
+
+testlib_sources = [
+  'logger_suite.c',
+  
+  'testhelper.c'
+]
+
+myEnv.Lib('logtests',testlib_sources,TESTBUILD=1)
+
+our_libs = [
+#The library containing the tests
+  'logtests',
+  
+  'logging','loggingintf',
+  
+#Libraries to get everything linked
+  'testframework',
+  'memintf','mem','memdefimpl',
+  'osutilsintf','osutils','utildefimpl',
+  ]
+system_libs = ['check','rt','zlog']
+
+libs = our_libs[:]
+libs.extend(system_libs)
+ 
+tests = myEnv.App('logger-tests',source='logger_main.c',LIBS=libs,TESTBUILD=1)
+
+myEnv.Alias('unittests',tests)
+myEnv.Alias('loggertests',tests)

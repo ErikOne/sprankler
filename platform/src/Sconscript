@@ -1,0 +1,21 @@
+Import('env')
+
+from custombuilder import CopyEnv
+
+myEnv = CopyEnv(env)
+
+platform_intf = ['platform_intf.c']
+platform_impl = [
+	'poller.c',
+	'platform_init.c',
+	'pump_switch.c',
+	'tools.c',
+	]
+ 
+lib = myEnv.Lib('platform',platform_impl)
+intf = myEnv.Lib('platformintf',platform_intf)
+
+
+
+
+myEnv.Alias('platform',[intf,lib])   

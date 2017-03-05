@@ -29,10 +29,14 @@ AddOption('--buildtype', dest='build_type', nargs=1, choices=OPTION_BUILDTYPE_CH
 AddOption('--debugbuild', dest='debug_build',action="store_true",default=False,
     help='Is the debug enabled on this build')
 
+AddOption('--yocto', dest='yocto_build',action="store_true",default=False,
+    help='Is this build run from within a Yocto SDK')
+
+
 basic_variables = {
     'LIBS'          : [],
     'SHARED_LIBS'   : ['-lrt', '-lpthread' ],
-    'CCFLAGS'       : [ '-Wall','-Werror', '-Wstrict-prototypes'],
+    'CCFLAGS'       : [ '-g3', '-Wall','-Werror', '-Wstrict-prototypes'],
     'CFLAGS'        : [],
     'CXXFLAGS'      : [],
     'CPPPATH'       : [],
@@ -50,10 +54,21 @@ if GetOption("debug_build") == True:
 target_variables = copy.deepcopy(basic_variables)
 target_variables['BUILDROOT'] = "#/do/"+GetOption('target')
 
+if GetOption('yocto_build') == True:
+	CC, CC_OPTIONS = os.environ['CC'].split(" ", 1)
+	target_variables['CC'] = CC
+	target_variables['CFLAGS'].extend(CC_OPTIONS.split())
+	target_variables['LINKFLAGS'].extend(CC_OPTIONS.split())
+
+
+
 if GetOption('build_type') == 'unittests':
     target_variables['CPPDEFINES'].update ({ 'UNITTESTS' : None })
 
 env = Environment(**target_variables)
+
+env['PURE_CC'] = env['CC']
+
 
 env['INSTALL_DIR'] = env.Dir(env['BUILDROOT'])
 env['THIRDPARTY_ROOT'] = env.Dir('third-party',env['INSTALL_DIR'])
@@ -72,5 +87,7 @@ env.SConsignFile('%s/.scons_signatures' %env.Dir(env['BUILDROOT']) )
  
 env.App = ProgramBuilder(env)
 env.Lib = LibBuilder(env)
+
+env.PrependENVPath('PATH',os.environ['PATH'])
 
 env.SConscript('%s/Sconscript' %env['BUILDROOT'], exports={'env':env})

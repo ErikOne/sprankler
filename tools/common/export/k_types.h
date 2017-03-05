@@ -8,7 +8,6 @@
 #ifndef COMMON_EXPORT_K_TYPES_H_
 #define COMMON_EXPORT_K_TYPES_H_
 
-#define __STDC_FORMAT_MACROS
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
