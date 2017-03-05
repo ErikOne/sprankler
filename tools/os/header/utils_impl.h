@@ -12,6 +12,8 @@
 
 K_Status_e utils_sleep(uint32_t sec);
 K_Status_e utils_usleep(uint32_t microseconds);
+K_Status_e utils_gettimeofday(OsTime_t * now);
+
 size_t utils_stringLength(const char_t * s);
 K_Status_e utils_trim(const char_t * const src, char_t * dest, size_t size, OsTrimMode_e trimType);
 K_Status_e utils_stringWrite(char_t * dest, size_t size, size_t * written, const char_t * format, ...);

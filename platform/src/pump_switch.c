@@ -110,15 +110,27 @@ static void localHandlePushButtonTrigger(int32_t fd, uint8_t * data, uint32_t nb
       data[nbrOfBytes - 1] = '\0';
     }
 
-    INFO("Received data on push button %s\n", data);
     int64_t value;
     if (utils->stringToInt((char_t *) data, 10, &value) == K_Status_OK)
     {
       if (value == 1)
       {
+        static uint64_t lastTime;
+
         if (fd == localPushButtonData.fd)
         {
-          INFO("Received  %" PRIi64 "\n", value);
+          OsTime_t now = {};
+
+          if (utils->getTimeOfDay(&now) == K_Status_OK)
+          {
+            uint64_t x = now.sec * 1000000000 + now.nano_sec;
+
+            if (x - lastTime > 500000000)
+            {
+              printf("Button was pressed\n");
+            }
+            lastTime = x;
+          }
         }
       }
     }

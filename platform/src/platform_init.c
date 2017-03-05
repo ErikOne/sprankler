@@ -15,7 +15,11 @@ K_Status_e platform_init(void)
 
   if (platform_initSysPoller() == K_Status_OK)
   {
-    if (platform_setupPumpSwitch() != K_Status_OK)
+    if (platform_setupPumpSwitch() == K_Status_OK)
+    {
+      rc = K_Status_OK;
+    }
+    else
     {
       ERROR("Could not set up input button\n");
     }

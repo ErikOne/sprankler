@@ -12,6 +12,7 @@ static IUtils_t localIntf =
 #ifndef UNITTESTS
   .sleep        = utils_sleep,
   .usleep       = utils_usleep,
+  .getTimeOfDay = utils_gettimeofday,
   .stringLength = utils_stringLength,
   .stringCopy   = utils_stringCopy,
   .stringCmp    = utils_stringCmp,

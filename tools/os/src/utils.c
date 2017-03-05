@@ -13,6 +13,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <time.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -351,6 +352,25 @@ K_Boolean_e utils_isEOF(OsFile_t file)
   }
 
   return eof;
+}
+
+K_Status_e utils_gettimeofday(OsTime_t * now)
+{
+  K_Status_e rc = K_Status_General_Error;
+
+  if (now != NULL)
+  {
+    struct timespec t;
+    if (clock_gettime(CLOCK_REALTIME, &t) == 0)
+    {
+      now->sec = t.tv_sec;
+      now->nano_sec = t.tv_nsec;
+
+      rc = K_Status_OK;
+    }
+  }
+
+  return rc;
 }
 
 static const char_t * localOsModeToSysMode(OsFileMode_e mode)

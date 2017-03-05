@@ -36,7 +36,7 @@ AddOption('--yocto', dest='yocto_build',action="store_true",default=False,
 basic_variables = {
     'LIBS'          : [],
     'SHARED_LIBS'   : ['-lrt', '-lpthread' ],
-    'CCFLAGS'       : [ '-g3', '-Wall','-Werror', '-Wstrict-prototypes'],
+    'CCFLAGS'       : ['-Wall','-Werror', '-Wstrict-prototypes'],
     'CFLAGS'        : [],
     'CXXFLAGS'      : [],
     'CPPPATH'       : [],

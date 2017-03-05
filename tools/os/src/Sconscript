@@ -22,7 +22,12 @@ utils_impl = ['utils.c']
 utilslib = myEnv.Lib('utils',utils_impl)
 utilsintf = myEnv.Lib('utilsintf',utils_intf)
 
+net_intf = ['net_intf.c']
+net_impl = ['net.c']
+
+netlib = myEnv.Lib('net',net_impl)
+netintf = myEnv.Lib('netintf',net_intf)
 
 
 
-myEnv.Alias('osa',[memlib,threadlib,utilslib, memintf,threadintf, utilsintf])   
+myEnv.Alias('osa',[memlib,threadlib,utilslib, memintf,threadintf, utilsintf, netlib, netintf])   

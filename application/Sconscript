@@ -6,7 +6,8 @@ interfaces = [
 	'memintf',
 	'utilsintf',
 	'threadintf',
-	'platformintf',	
+	'platformintf',
+	'netintf',
 	'loggingintf',
 ]
 
@@ -14,6 +15,7 @@ implementations = [
 	'mem',
 	'utils',
 	'thread',
+	'net',
 	'platform',
 	'logging'
 ]

@@ -29,11 +29,19 @@ typedef enum
   F_READWRITE_APPEND = 6
 } OsFileMode_e;
 
+typedef struct _ostime
+{
+  uint32_t sec;
+  uint32_t nano_sec;
+} OsTime_t;
+
 typedef struct _utils_interface
 {
   K_Status_e (* sleep)(uint32_t seconds);
 
   K_Status_e (* usleep)(uint32_t microseconds);
+
+  K_Status_e (* getTimeOfDay)(OsTime_t * time);
 
   size_t (* stringLength)( const char_t const * string);
 

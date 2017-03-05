@@ -26,12 +26,14 @@
 #include <os/memIntf.h>
 #include <os/threadIntf.h>
 #include <os/utilsIntf.h>
+#include <os/netIntf.h>
 #include <logging/logging.h>
 
 #include "platform.h"
 
 #define WAKEUP_POSITION     0
-#define MAX_POLL_ENTRIES    1
+#define MAX_POLL_ENTRIES    5
+#define POLLER_WAKEUP_PORT  ((uint16_t)60000U)
 
 typedef void (* POLLHANDLER)(int32_t fd, uint8_t * data, uint32_t nbrOfBytes);
 
@@ -52,9 +54,14 @@ static struct PollerData
   OsMutex_t entryLock;
   volatile K_Boolean_e active;
   volatile K_Boolean_e polling;
+  OsSocket_t wakeupSocket;
+  OSIPv4Address_t wakeupAddress;
 } localPollerData;
 
+static K_Status_e localCreateAndRegisterWakeupSocket(struct PollerData * poller);
+
 static void * localPollerTask(void * data);
+static void localWakeup(struct PollerData * poller);
 
 K_Status_e platform_initSysPoller(void)
 {
@@ -64,23 +71,25 @@ K_Status_e platform_initSysPoller(void)
 
   mem->memset(&localPollerData, 0, sizeof(localPollerData));
 
-  if ((localPollerData.entryLock = ti->createMutex()) != NULL)
+  if (localCreateAndRegisterWakeupSocket(&localPollerData) == K_Status_OK)
   {
-    localPollerData.active = K_True;
-    if ((localPollerData.pollerThread = ti->createThread(localPollerTask, &localPollerData)) != NULL)
+    if ((localPollerData.entryLock = ti->createMutex()) != NULL)
     {
-      rc = K_Status_Locked;
+      localPollerData.active = K_True;
+      if ((localPollerData.pollerThread = ti->createThread(localPollerTask, &localPollerData)) != NULL)
+      {
+        rc = K_Status_OK;
+      }
+      else
+      {
+        FATAL("Could not create poller Thread\n");
+      }
     }
     else
     {
-      FATAL("Could not create poller Thread\n");
+      FATAL("Could not create system poller mutex\n");
     }
   }
-  else
-  {
-    FATAL("Could not create system poller mutex\n");
-  }
-
   return rc;
 }
 
@@ -92,6 +101,12 @@ K_Status_e platform_addPollHandler(int32_t fd, POLLHANDLER handler)
 
   if (ti->lockMutex(poller->entryLock) == K_Status_OK)
   {
+    localWakeup(poller);
+    while (poller->polling == K_True)
+    {
+      ti->yieldThread();
+    }
+
     uint32_t i;
     for (i = 0; (i < MAX_POLL_ENTRIES); i++)
     {
@@ -109,7 +124,6 @@ K_Status_e platform_addPollHandler(int32_t fd, POLLHANDLER handler)
         break;
       }
     }
-
     ti->unlockMutex(poller->entryLock);
   }
 
@@ -125,6 +139,12 @@ K_Status_e platform_removePollHandler(int32_t fd)
 
   if (ti->lockMutex(poller->entryLock) == K_Status_OK)
   {
+    localWakeup(poller);
+    while (poller->polling == K_True)
+    {
+      ti->yieldThread();
+    }
+
     uint32_t i, j;
     for (i = 0; (i < MAX_POLL_ENTRIES); i++)
     {
@@ -163,6 +183,7 @@ static void * localPollerTask(void * data)
   {
     poller->polling = K_False;
     uint32_t nbr;
+
     if (ti->lockMutex(poller->entryLock) == K_Status_OK)
     {
       for (nbr = 0; (nbr < MAX_POLL_ENTRIES) && (poller->descriptors[nbr].fd != 0); nbr++) ;
@@ -202,6 +223,7 @@ static void * localPollerTask(void * data)
           {
             nbrOfBytes = read(poller->descriptors[i].fd, buffer, sizeof buffer);
           }
+
           else
           {
             ERROR("Unhandled pollevent %u for fd %d\n", poller->descriptors[i].revents, poller->descriptors[i].fd);
@@ -217,3 +239,54 @@ static void * localPollerTask(void * data)
 
   return NULL;
 }
+
+static K_Status_e localCreateAndRegisterWakeupSocket(struct PollerData * poller)
+{
+  K_Status_e rc = K_Status_General_Error;
+  const INetwork_t * const net = getNetIntf();
+  uint16_t i;
+  if (poller != NULL)
+  {
+    poller->wakeupSocket = net->createSocket(SOCKETTYPE_DGRAM);
+    if (poller->wakeupSocket != NULL)
+    {
+      poller->wakeupAddress.ipAddress = (127 << 24) | 1;
+
+      if (net->setNonBlocking(poller->wakeupSocket, K_True) == K_Status_OK)
+      {
+        for (i = 0; i < 0xFFFF; i++)
+        {
+          poller->wakeupAddress.port = POLLER_WAKEUP_PORT + i;
+          if (net->bind(poller->wakeupSocket, &poller->wakeupAddress) == K_Status_OK)
+          {
+            /* The wake up socket will always be at position 0 */
+            poller->descriptors[WAKEUP_POSITION].fd = net->getFD(poller->wakeupSocket);
+            poller->descriptors[WAKEUP_POSITION].events = POLLIN | POLLPRI;
+
+            poller->pollEntries[WAKEUP_POSITION].fd = net->getFD(poller->wakeupSocket);
+            poller->pollEntries[WAKEUP_POSITION].handler = NULL;
+
+            INFO("System poller is bound at port %u\n", poller->wakeupAddress.port);
+            rc = K_Status_OK;
+            break;
+          }
+        }
+      }
+    }
+  }
+  return rc;
+}
+
+static void localWakeup(struct PollerData * poller)
+{
+  if (poller != NULL)
+  {
+    const INetwork_t * const net = getNetIntf();
+    uint8_t buffer = 1;
+    if (net->udpSend(poller->wakeupSocket, &poller->wakeupAddress, &buffer, sizeof buffer) != K_Status_OK)
+    {
+      ERROR("Failed to wake up system poller\n");
+    }
+  }
+}
+

@@ -21,6 +21,12 @@ static IThread_t localIntf =
   .lockMutex     = thread_lockMutex,
   .unlockMutex   = thread_unlockMutex,
   .trylockMutex  = thread_trylockMutex,
+
+  .createThread  = thread_createThread,
+  .destroyThread = thread_destroyThread,
+  .joinThread    = thread_joinThread,
+  .yieldThread   = thread_yieldThread,
+
 #endif
 };
 
