@@ -176,6 +176,71 @@ K_Status_e thread_destroyAtomicLock(OsAtomicLock_t lock)
   return rc;
 }
 
+OsCondition_t thread_conditionCreate(void)
+{
+  OsCondition_t newCondition = NULL;
+  const IMem_t * const mem = getMemIntf();
+
+  newCondition = (OsCondition_t) mem->malloc(sizeof(struct OsCondition));
+  if (newCondition != NULL)
+  {
+    mem->memset(newCondition, 0, sizeof(struct OsCondition));
+    if (pthread_cond_init(&newCondition->condition, NULL) != 0)
+    {
+      mem->free(newCondition);
+      newCondition = NULL;
+    }
+  }
+
+  return newCondition;
+}
+
+K_Status_e thread_conditionDestroy(OsCondition_t c)
+{
+  K_Status_e rc = K_Status_General_Error;
+
+  if (c != NULL)
+  {
+    const IMem_t * const mem = getMemIntf();
+    pthread_cond_destroy(&c->condition);
+
+    mem->free(c);
+
+    rc = K_Status_OK;
+  }
+
+  return rc;
+}
+
+K_Status_e thread_conditionWait(OsCondition_t c, OsMutex_t m)
+{
+  K_Status_e rc = K_Status_General_Error;
+
+  if ((c != NULL) && (m != NULL))
+  {
+    if (pthread_cond_wait(&c->condition, &m->mutex) == 0)
+    {
+      rc = K_Status_OK;
+    }
+  }
+  return rc;
+}
+
+K_Status_e thread_conditionSignal(OsCondition_t c)
+{
+  K_Status_e rc = K_Status_General_Error;
+
+  if (c != NULL)
+  {
+    if (pthread_cond_signal(&c->condition) == 0)
+    {
+      rc = K_Status_OK;
+    }
+  }
+
+  return rc;
+}
+
 OsThread_t thread_createThread(THREAD_FUNCTION f, void * data)
 {
   struct OsThread * newThread = NULL;

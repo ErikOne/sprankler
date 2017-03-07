@@ -1,0 +1,15 @@
+Import('env')
+
+myEnv=env.Clone()
+
+intf_sources = ['queue_intf.c']
+lib_sources = [
+  'queue.c', 
+  'fixedsize_queue.c',
+  'dynamic_queue.c',
+]
+
+queue_intf = myEnv.Lib('queueintf',intf_sources)
+queue = myEnv.Lib('queue',lib_sources)
+
+myEnv.Alias('queues',[queue,queue_intf]) 

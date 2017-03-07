@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-#define PLATFORM_GPIO_DIR_TEMPLATE  "/sys/class/gpio/gpio%u"
-
 static struct _pushButtonData
 {
   char_t filePath[255];
@@ -70,9 +68,9 @@ static K_Status_e localSetupPushButton(struct _pushButtonData * button)
     {
       WARNING("Could not configure edge trigger for %s to %s\n", dir, EDGE_RISING);
     }
-    else if (platform_sysWrite(dir, ACTIVE_LOW_FILE, VALUE_ONE) != K_Status_OK)
+    else if (platform_sysWrite(dir, ACTIVE_LOW_FILE, VALUE_ACTIVE) != K_Status_OK)
     {
-      WARNING("Could not configure active_low for %s to %s\n", dir, VALUE_ONE);
+      WARNING("Could not configure active_low for %s to %s\n", dir, VALUE_ACTIVE);
     }
     else
     {
@@ -127,7 +125,11 @@ static void localHandlePushButtonTrigger(int32_t fd, uint8_t * data, uint32_t nb
 
             if (x - lastTime > 500000000)
             {
+              const IPlatform_t * const platform = getPlatformIntf();
               printf("Button was pressed\n");
+
+              platform->toggleGPIO(GPIO_Relais_1);
+              platform->toggleGPIO(GPIO_Relais_2);
             }
             lastTime = x;
           }

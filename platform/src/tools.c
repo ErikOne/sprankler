@@ -5,6 +5,8 @@
  *      Author: erik
  */
 
+#include "platform.h"
+
 #include <os/utilsIntf.h>
 #include <logging/logging.h>
 
@@ -37,3 +39,37 @@ K_Status_e platform_sysWrite(const char_t * dir, const char_t * file, const char
 
   return rc;
 }
+
+K_Status_e platform_getDirForGPIO(PlatformGPIO_e gpio, char_t * buffer, size_t size)
+{
+  K_Status_e rc = K_Status_General_Error;
+
+  int32_t num = -1;
+
+  switch (gpio)
+  {
+    case GPIO_Relais_1:
+      num = GPIO(27);
+      break;
+    case GPIO_Relais_2:
+      num = GPIO(22);
+      break;
+    case GPIO_Input_Switch:
+      num = GPIO(4);
+      break;
+    default:
+      break;
+  }
+
+  if (num != -1)
+  {
+    const IUtils_t * const utils = getUtilsIntf();
+    if (utils->stringWrite(buffer, size, NULL, PLATFORM_GPIO_DIR_TEMPLATE, num) == K_Status_OK)
+    {
+      rc = K_Status_OK;
+    }
+  }
+
+  return rc;
+}
+

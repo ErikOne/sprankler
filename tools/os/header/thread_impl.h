@@ -33,6 +33,11 @@ struct OsAtomicLock
   volatile uint32_t isBusy;
 };
 
+struct OsCondition
+{
+  pthread_cond_t condition;
+};
+
 OsMutex_t thread_createMutex(void);
 K_Status_e thread_destroyMutex(OsMutex_t mutex);
 K_Status_e thread_lockMutex(OsMutex_t mutex);
@@ -45,6 +50,11 @@ K_Status_e thread_destroyAtomicLock(OsAtomicLock_t lock);
 K_Status_e thread_lockAtomicLock(OsAtomicLock_t lock);
 K_Status_e thread_unlockAtomicLock(OsAtomicLock_t lock);
 K_Status_e thread_trylockAtomicLock(OsAtomicLock_t lock);
+
+OsCondition_t thread_conditionCreate(void);
+K_Status_e thread_conditionDestroy(OsCondition_t c);
+K_Status_e thread_conditionWait(OsCondition_t c, OsMutex_t m);
+K_Status_e thread_conditionSignal(OsCondition_t c);
 
 OsThread_t thread_createThread(THREAD_FUNCTION f, void * data);
 K_Status_e thread_destroyThread(OsThread_t t);

@@ -9,6 +9,7 @@ platform_impl = [
 	'poller.c',
 	'platform_init.c',
 	'pump_switch.c',
+	'gpio.c',
 	'tools.c',
 	]
  

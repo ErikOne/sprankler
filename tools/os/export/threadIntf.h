@@ -13,6 +13,7 @@
 typedef void * (* THREAD_FUNCTION)(void * data);
 
 typedef struct OsMutex * OsMutex_t;
+typedef struct OsCondition * OsCondition_t;
 typedef struct OsAtomicLock * OsAtomicLock_t;
 typedef struct OsThread * OsThread_t;
 
@@ -54,6 +55,14 @@ typedef struct _thread_interface
   K_Status_e (* unlockMutex)(OsMutex_t mutex);
 
   K_Status_e (* trylockMutex)(OsMutex_t mutex);
+
+  OsCondition_t (* conditionCreate)(void);
+
+  K_Status_e (* conditionDestroy)(OsCondition_t c);
+
+  K_Status_e (* conditionWait)(OsCondition_t c, OsMutex_t m);
+
+  K_Status_e (* conditionSignal)(OsCondition_t c);
 
   OsThread_t (* createThread)(THREAD_FUNCTION f, void * userData);
 
