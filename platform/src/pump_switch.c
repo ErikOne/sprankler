@@ -150,7 +150,7 @@ static void localHandlePushButtonTrigger(int32_t fd, uint8_t * data, uint32_t nb
 
 static void localToggleGPIO(const void * const data)
 {
-  INFO("%s\n\n", __FUNCTION__);
+  INFO("%s\n", __FUNCTION__);
   const IPlatform_t * const platform = getPlatformIntf();
   platform->toggleGPIO(GPIO_Relais_1);
   platform->toggleGPIO(GPIO_Relais_2);
