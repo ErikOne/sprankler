@@ -1,0 +1,16 @@
+Import('env')
+
+myEnv=env.Clone()
+
+intf_sources = ["eventbus_intf.c"]
+lib_sources =  ["eventbus.c","handle.c","handle_onbus.c"]
+  
+libdata = [
+	['ebus',    lib_sources],
+	['ebusintf',intf_sources]
+]
+
+for tupple in libdata:
+   name,sources = tupple
+   lib = myEnv.Lib(name,sources)
+   myEnv.Alias('events',lib)

@@ -10,9 +10,9 @@
 
 #include <os/memIntf.h>
 
-void *mem_malloc(size_t size);
-void mem_free(void *heap);
-void *mem_memset(void *dest, uint8_t value, size_t size);
-
+void * mem_malloc(size_t size);
+void mem_free(void * heap);
+void * mem_memset(void * dest, uint8_t value, size_t size);
+void * mem_memcpy( void * dst, const void * const src, size_t size);
 
 #endif /* OS_HEADER_MEM_IMPL_H_ */

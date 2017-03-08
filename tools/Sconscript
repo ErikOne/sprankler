@@ -2,6 +2,7 @@ Import('env')
 
 
 SUBDIRS = [
+  'eventbus',
   'logging',
   'os',
   'queue',

@@ -353,6 +353,20 @@ static K_Status_e localMarkLockBusy(OsAtomicLock_t lock)
   return rc;
 }
 
+K_Boolean_e thread_itsMe(OsThread_t thread)
+{
+  K_Boolean_e itsMe = K_False;
+  if (thread != NULL)
+  {
+    if (pthread_self() == thread->thread)
+    {
+      itsMe = K_True;
+    }
+  }
+
+  return itsMe;
+}
+
 static K_Status_e localMarkLockAvailable(OsAtomicLock_t lock)
 {
   K_Status_e rc = K_Status_Invalid_Param;

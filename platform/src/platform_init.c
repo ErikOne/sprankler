@@ -17,7 +17,16 @@ K_Status_e platform_init(void)
   {
     if (platform_setupPumpSwitch() == K_Status_OK)
     {
-      rc = K_Status_OK;
+      if (platform_setupWallPlug() == K_Status_OK)
+      {
+        platform_setGPIOActive(GPIO_Relais_1, K_False);
+        platform_setGPIOActive(GPIO_Relais_2, K_False);
+        rc = K_Status_OK;
+      }
+      else
+      {
+        ERROR("Could not set up Wall Plug\n");
+      }
     }
     else
     {

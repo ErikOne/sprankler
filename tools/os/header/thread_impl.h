@@ -60,5 +60,6 @@ OsThread_t thread_createThread(THREAD_FUNCTION f, void * data);
 K_Status_e thread_destroyThread(OsThread_t t);
 K_Status_e thread_joinThread(OsThread_t thread);
 K_Status_e thread_yieldThread(void);
+K_Boolean_e thread_itsMe(OsThread_t thread);
 
 #endif /* OS_HEADER_THREAD_IMPL_H_ */

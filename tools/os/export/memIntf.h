@@ -27,13 +27,14 @@ typedef struct _mem_interface
    * If NULL is passed in the cal is silently ignored
    */
 
-  void (*free) (void * heap);
+  void (* free)(void * heap);
 
-  void* (*memset) (void * dest, uint8_t value, size_t size);
+  void * (*memset)(void * dest, uint8_t value, size_t size);
+
+  void *(*memcpy)(void * dst, const void * const src, size_t size);
 
 } IMem_t;
 
-IMem_t *getMemIntf(void);
-
+IMem_t * getMemIntf(void);
 
 #endif /* EXPORT_MEMINTF_H_ */

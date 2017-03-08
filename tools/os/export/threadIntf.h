@@ -72,6 +72,8 @@ typedef struct _thread_interface
 
   K_Status_e (* threadYield)(void);
 
+  K_Boolean_e (* itsMe)(OsThread_t thread);
+
 } IThread_t;
 
 IThread_t * getThreadIntf(void);

@@ -1,0 +1,12 @@
+Import ('env')
+
+SUBDIRS = [
+	'src',
+	'test'
+]
+
+if 'ExcludeOneToolsTest' in env:
+  if 'EVENTBUS' in env['ExcludeOneToolsTest']:
+    SUBDIRS.remove('test')
+
+env.SConscript(dirs=SUBDIRS, name='Sconscript', exports='env')

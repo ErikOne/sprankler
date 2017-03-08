@@ -73,3 +73,39 @@ K_Status_e platform_getDirForGPIO(PlatformGPIO_e gpio, char_t * buffer, size_t s
   return rc;
 }
 
+K_Status_e platform_openGPIO(PlatformGPIO_e gpio)
+{
+  K_Status_e rc = K_Status_Invalid_Param;
+  char_t dir[255];
+
+  if (platform_getDirForGPIO(gpio, dir, sizeof(dir)) == K_Status_OK)
+  {
+    const IUtils_t * const utils = getUtilsIntf();
+    char_t file[255];
+
+    if (utils->stringWrite(file, sizeof file, NULL, "%s/value", dir) == K_Status_OK)
+    {
+      if (utils->fileExists(file, sizeof(file)) == K_True)
+      {
+        rc = K_Status_OK;
+      }
+      else
+      {
+        char_t number[16];
+
+        if (utils->stringWrite(number, sizeof(number), NULL, "%d", gpio) == K_Status_OK)
+        {
+          if (platform_sysWrite(PLATFORM_GPIO_DIR, EXPORT_FILE, number) == K_Status_OK)
+          {
+            utils->usleep(100000);
+            if (utils->fileExists(file, sizeof(file)) == K_True)
+            {
+              rc = K_Status_OK;
+            }
+          }
+        }
+      }
+    }
+  }
+  return rc;
+}

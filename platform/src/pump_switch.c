@@ -4,6 +4,8 @@
 #include <os/memIntf.h>
 #include <platform/platformIntf.h>
 #include <logging/logging.h>
+#include <eventbus/eventbusIntf.h>
+#include <sprankler/sprankler.h>
 
 #include <stdlib.h>
 #include <fcntl.h>
@@ -16,6 +18,7 @@ static struct _pushButtonData
 
 static K_Status_e localSetupPushButton(struct _pushButtonData * button);
 static void localHandlePushButtonTrigger(int32_t fd, uint8_t * data, uint32_t nbrOfBytes);
+static void localToggleGPIO(const void * const data);
 
 K_Status_e platform_setupPumpSwitch(void)
 {
@@ -48,7 +51,11 @@ static K_Status_e localSetupPushButton(struct _pushButtonData * button)
 
     char_t dir[255];
 
-    if (utils->stringWrite(dir, sizeof(dir), NULL, PLATFORM_GPIO_DIR_TEMPLATE, GPIO(4)) != K_Status_OK)
+    if (platform_openGPIO(GPIO_Input_Switch) != K_Status_OK)
+    {
+      FATAL("Could not export GPIO %d\n", GPIO_Input_Switch);
+    }
+    else if (utils->stringWrite(dir, sizeof(dir), NULL, PLATFORM_GPIO_DIR_TEMPLATE, GPIO(4)) != K_Status_OK)
     {
       FATAL("Could not setup directory for Push Button\n");
     }
@@ -62,7 +69,7 @@ static K_Status_e localSetupPushButton(struct _pushButtonData * button)
     }
     else if (platform_sysWrite(dir, DIRECTION_FILE, DIRECTION_IN) != K_Status_OK)
     {
-      WARNING("Could not configure edge trigger for %s to %s\n", dir, EDGE_RISING);
+      WARNING("Could not configure direction for %s to %s\n", dir, DIRECTION_IN);
     }
     else if (platform_sysWrite(dir, EDGE_FILE, EDGE_RISING) != K_Status_OK)
     {
@@ -77,11 +84,11 @@ static K_Status_e localSetupPushButton(struct _pushButtonData * button)
       button->fd = open(button->filePath, O_RDONLY | O_NONBLOCK);
       if (button->fd < 0)
       {
-        ERROR("Could not open pulse counter %s\n", button->filePath);
+        ERROR("Could not open poller file for %s\n", button->filePath);
       }
       else
       {
-        INFO("Successfully opened pulse counter %s\n", button->filePath);
+        INFO("Successfully opened poller file %s\n", button->filePath);
         rc = K_Status_OK;
       }
 
@@ -123,13 +130,16 @@ static void localHandlePushButtonTrigger(int32_t fd, uint8_t * data, uint32_t nb
           {
             uint64_t x = now.sec * 1000000000 + now.nano_sec;
 
-            if (x - lastTime > 500000000)
+            if (x - lastTime > 250000000)
             {
-              const IPlatform_t * const platform = getPlatformIntf();
+              const EventBusIntf_t * const ebi = getEventBusIntf();
+
               printf("Button was pressed\n");
 
-              platform->toggleGPIO(GPIO_Relais_1);
-              platform->toggleGPIO(GPIO_Relais_2);
+              if (ebi->handleOnBus(localToggleGPIO, NULL, NULL, getSpranklerBus()) != K_Status_OK)
+              {
+                printf("Failed to call BUS event\n");
+              }
             }
             lastTime = x;
           }
@@ -137,5 +147,13 @@ static void localHandlePushButtonTrigger(int32_t fd, uint8_t * data, uint32_t nb
       }
     }
   }
+}
+
+static void localToggleGPIO(const void * const data)
+{
+  printf("Toggle GPIO in bus thread\n");
+  const IPlatform_t * const platform = getPlatformIntf();
+  platform->toggleGPIO(GPIO_Relais_1);
+  platform->toggleGPIO(GPIO_Relais_2);
 
 }

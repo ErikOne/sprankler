@@ -9,6 +9,8 @@ interfaces = [
 	'platformintf',
 	'netintf',
 	'loggingintf',
+	'queueintf',
+	'ebusintf',
 ]
 
 implementations = [
@@ -17,7 +19,9 @@ implementations = [
 	'thread',
 	'net',
 	'platform',
-	'logging'
+	'logging',
+	'queue',
+	'ebus',
 ]
 
 libs = []
