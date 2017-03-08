@@ -84,7 +84,7 @@ static K_Status_e localFixedSizeQueuePutItem(struct _Queue * fsq, void * item)
   {
     const IThread_t * const ti = getThreadIntf();
 
-    if (ti->lockMutex(fsq->mutex) == K_Status_OK)
+    if (ti->mutexLock(fsq->mutex) == K_Status_OK)
     {
       uint16_t next = (fsq->writePos + 1 + fsq->size - fsq->readPos) % fsq->size;
       /* The queue is full, wait for it to get space again */
@@ -101,7 +101,7 @@ static K_Status_e localFixedSizeQueuePutItem(struct _Queue * fsq, void * item)
         fsq->writePos = (uint16_t) (fsq->writePos + 1) % fsq->size;
       }
 
-      (void) ti->unlockMutex(fsq->mutex);
+      (void) ti->mutexUnlock(fsq->mutex);
 
       /* As the reader might be blocked because of empty inform him about it */
       (void) ti->conditionSignal(fsq->empty);
@@ -149,7 +149,7 @@ static K_Status_e localDoBlockingRead(struct _Queue * q, void * item)
   K_Status_e rc = K_Status_General_Error;
   const IThread_t * const ti = getThreadIntf();
 
-  if (ti->lockMutex(q->mutex) == K_Status_OK)
+  if (ti->mutexLock(q->mutex) == K_Status_OK)
   {
     while (q->readPos == q->writePos)
     {
@@ -163,7 +163,7 @@ static K_Status_e localDoBlockingRead(struct _Queue * q, void * item)
       q->readPos = (q->readPos + 1) % q->size;
     }
 
-    (void) ti->unlockMutex(q->mutex);
+    (void) ti->mutexUnlock(q->mutex);
 
     /* As the writer might be blocked because of overflow inform him about it */
     rc = ti->conditionSignal(q->full);
@@ -178,7 +178,7 @@ static K_Status_e localDoNonblockingRead(struct _Queue * q, void * item)
   K_Status_e rc = K_Status_General_Error;
   const IThread_t * const ti = getThreadIntf();
 
-  if (ti->lockMutex(q->mutex) == K_Status_OK)
+  if (ti->mutexLock(q->mutex) == K_Status_OK)
   {
     if (q->readPos != q->writePos)
     {
@@ -188,13 +188,13 @@ static K_Status_e localDoNonblockingRead(struct _Queue * q, void * item)
         q->readPos = (q->readPos + 1) % q->size;
         q->usage--;
       }
-      (void) ti->unlockMutex(q->mutex);
+      (void) ti->mutexUnlock(q->mutex);
       rc = ti->conditionSignal(q->empty);
     }
     else
     {
       rc = K_Status_NoResult;
-      (void) ti->unlockMutex(q->mutex);
+      (void) ti->mutexUnlock(q->mutex);
     }
   }
 
@@ -208,7 +208,7 @@ static K_Status_e localFixedSizeQueueResetQueue(struct _Queue * impl, uint16_t *
 
   if ((impl != NULL) && (droppedPackets != NULL))
   {
-    if (ti->lockMutex(impl->mutex) == K_Status_OK)
+    if (ti->mutexLock(impl->mutex) == K_Status_OK)
     {
       *droppedPackets = impl->usage;
 
@@ -216,7 +216,7 @@ static K_Status_e localFixedSizeQueueResetQueue(struct _Queue * impl, uint16_t *
       impl->writePos = 0;
       impl->usage = 0;
 
-      (void) ti->unlockMutex(impl->mutex);
+      (void) ti->mutexUnlock(impl->mutex);
       rc = ti->conditionSignal(impl->full);
     }
   }

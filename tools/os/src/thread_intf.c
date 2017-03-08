@@ -10,27 +10,27 @@
 static IThread_t localIntf =
 {
 #ifndef UNITTESTS
-  .createALock      = thread_createAtomicLock,
-  .destroyALock     = thread_destroyAtomicLock,
-  .lockAtomic       = thread_lockAtomicLock,
-  .unlockAtomic     = thread_unlockAtomicLock,
-  .trylockAtomic    = thread_trylockAtomicLock,
+  .alockCreate      = thread_createAtomicLock,
+  .alockDestroy     = thread_destroyAtomicLock,
+  .alockLock       = thread_lockAtomicLock,
+  .alockUnlock     = thread_unlockAtomicLock,
+  .alockTrylock    = thread_trylockAtomicLock,
 
-  .createMutex      = thread_createMutex,
-  .destroyMutex     = thread_destroyMutex,
-  .lockMutex        = thread_lockMutex,
-  .unlockMutex      = thread_unlockMutex,
-  .trylockMutex     = thread_trylockMutex,
+  .mutexCreate      = thread_createMutex,
+  .mutexDestroy     = thread_destroyMutex,
+  .mutexLock        = thread_lockMutex,
+  .mutexUnlock      = thread_unlockMutex,
+  .mutexTrylock     = thread_trylockMutex,
 
   .conditionCreate  = thread_conditionCreate,
   .conditionDestroy = thread_conditionDestroy,
   .conditionWait    = thread_conditionWait,
   .conditionSignal  = thread_conditionSignal,
 
-  .createThread     = thread_createThread,
-  .destroyThread    = thread_destroyThread,
-  .joinThread       = thread_joinThread,
-  .yieldThread      = thread_yieldThread,
+  .threadCreate     = thread_createThread,
+  .threadDestroy    = thread_destroyThread,
+  .threadJoin       = thread_joinThread,
+  .threadYield      = thread_yieldThread,
 
 #endif
 };

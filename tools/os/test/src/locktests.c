@@ -29,66 +29,66 @@ START_TEST(test_createAtomicLock)
   const IThread_t * const ti = getThreadIntf();
   K_Status_e result;
 
-  OsAtomicLock_t lock = ti->createALock();
+  OsAtomicLock_t lock = ti->alockCreate();
   ck_assert(lock != NULL);
 
   ck_assert_int_eq(lock->isBusy, THREAD_LOCK_AVAILABLE);
-  result = ti->destroyALock(lock);
+  result = ti->alockDestroy(lock);
   ck_assert_int_eq(result, K_Status_OK);
 END_TEST
 
 START_TEST(test_lockAndUnlockAtomicLock)
   const IThread_t * const ti = getThreadIntf();
 
-  OsAtomicLock_t lock = ti->createALock();
+  OsAtomicLock_t lock = ti->alockCreate();
   ck_assert(lock != NULL);
 
   ck_assert_int_eq(lock->isBusy, THREAD_LOCK_AVAILABLE);
-  K_Status_e result = ti->lockAtomic(lock);
+  K_Status_e result = ti->alockLock(lock);
 
   ck_assert_int_eq(result, K_Status_OK);
   ck_assert_int_eq(lock->isBusy, THREAD_LOCK_BUSY);
-  result = ti->trylockAtomic(lock);
+  result = ti->alockTrylock(lock);
   ck_assert_int_eq(result, K_Status_Locked);
-  result = ti->unlockAtomic(lock);
+  result = ti->alockUnlock(lock);
   ck_assert_int_eq(result, K_Status_OK);
   ck_assert_int_eq(lock->isBusy, THREAD_LOCK_AVAILABLE);
 
-  result = ti->destroyALock(lock);
+  result = ti->alockDestroy(lock);
   ck_assert_int_eq(result, K_Status_OK);
 END_TEST
 
 START_TEST(test_trylockAtomicLock)
   const IThread_t * const ti = getThreadIntf();
 
-  OsAtomicLock_t lock = ti->createALock();
+  OsAtomicLock_t lock = ti->alockCreate();
   ck_assert(lock != NULL);
 
   ck_assert_int_eq(lock->isBusy, THREAD_LOCK_AVAILABLE);
-  K_Status_e result = ti->trylockAtomic(lock);
+  K_Status_e result = ti->alockTrylock(lock);
 
   ck_assert_int_eq(result, K_Status_OK);
   ck_assert_int_eq(lock->isBusy, THREAD_LOCK_BUSY);
-  result = ti->trylockAtomic(lock);
+  result = ti->alockTrylock(lock);
   ck_assert_int_eq(result, K_Status_Locked);
-  result = ti->unlockAtomic(lock);
+  result = ti->alockUnlock(lock);
   ck_assert_int_eq(result, K_Status_OK);
   ck_assert_int_eq(lock->isBusy, THREAD_LOCK_AVAILABLE);
 
-  result = ti->destroyALock(lock);
+  result = ti->alockDestroy(lock);
   ck_assert_int_eq(result, K_Status_OK);
 END_TEST
 
 START_TEST(test_atomicCallsWithNULL)
   const IThread_t * const ti = getThreadIntf();
 
-  K_Status_e result = ti->lockAtomic(NULL);
+  K_Status_e result = ti->alockLock(NULL);
   ck_assert_int_eq(result, K_Status_Invalid_Param);
-  result = ti->unlockAtomic(NULL);
+  result = ti->alockUnlock(NULL);
   ck_assert_int_eq(result, K_Status_Invalid_Param);
-  result = ti->trylockAtomic(NULL);
+  result = ti->alockTrylock(NULL);
   ck_assert_int_eq(result, K_Status_Invalid_Param);
-  result = ti->destroyALock(NULL);
+  result = ti->alockDestroy(NULL);
   ck_assert_int_eq(result, K_Status_Invalid_Param);
 END_TEST
 
@@ -96,7 +96,7 @@ START_TEST(test_createMutex)
   const IThread_t * const ti = getThreadIntf();
   K_Status_e result;
 
-  OsMutex_t mutex = ti->createMutex();
+  OsMutex_t mutex = ti->mutexCreate();
   ck_assert(mutex != NULL);
 
   struct OsMutex * impl = mutex;
@@ -104,7 +104,7 @@ START_TEST(test_createMutex)
 
   ck_assert(impl->guard != NULL);
 
-  result = ti->destroyMutex(mutex);
+  result = ti->mutexDestroy(mutex);
   ck_assert_int_eq(result, K_Status_OK);
 END_TEST
 
@@ -112,25 +112,25 @@ START_TEST(test_mutexLock)
   const IThread_t * const ti = getThreadIntf();
   K_Status_e result;
 
-  OsMutex_t mutex = ti->createMutex();
+  OsMutex_t mutex = ti->mutexCreate();
   ck_assert(mutex != NULL);
 
   struct OsMutex * impl = mutex;
   ck_assert(impl != NULL);
 
   ck_assert(impl->guard != NULL);
-  result = ti->lockMutex(mutex);
+  result = ti->mutexLock(mutex);
   ck_assert_int_eq(result, K_Status_OK);
-  result = ti->trylockMutex(mutex);
+  result = ti->mutexTrylock(mutex);
   ck_assert_int_eq(result, K_Status_Unexpected_State);
-  result = ti->unlockMutex(mutex);
+  result = ti->mutexUnlock(mutex);
   ck_assert_int_eq(result, K_Status_OK);
-  result = ti->trylockMutex(mutex);
+  result = ti->mutexTrylock(mutex);
   ck_assert_int_eq(result, K_Status_OK);
-  result = ti->unlockMutex(mutex);
+  result = ti->mutexUnlock(mutex);
   ck_assert_int_eq(result, K_Status_OK);
 
-  result = ti->destroyMutex(mutex);
+  result = ti->mutexDestroy(mutex);
   ck_assert_int_eq(result, K_Status_OK);
 END_TEST
 
@@ -138,7 +138,7 @@ START_TEST(test_destroyMutexWithGuardLocked)
   const IThread_t * const ti = getThreadIntf();
   K_Status_e result;
 
-  OsMutex_t mutex = ti->createMutex();
+  OsMutex_t mutex = ti->mutexCreate();
   ck_assert(mutex != NULL);
 
   struct OsMutex * impl = mutex;
@@ -146,16 +146,16 @@ START_TEST(test_destroyMutexWithGuardLocked)
 
   ck_assert(impl->guard != NULL);
   /* Now lock the guard */
-  result = ti->lockAtomic(impl->guard);
+  result = ti->alockLock(impl->guard);
   ck_assert_int_eq(result, K_Status_OK);
 
-  result = ti->destroyMutex(mutex);
+  result = ti->mutexDestroy(mutex);
   ck_assert_int_eq(result, K_Status_Locked);
 
-  result = ti->unlockAtomic(impl->guard);
+  result = ti->alockUnlock(impl->guard);
   ck_assert_int_eq(result, K_Status_OK);
 
-  result = ti->destroyMutex(mutex);
+  result = ti->mutexDestroy(mutex);
   ck_assert_int_eq(result, K_Status_OK);
 END_TEST
 

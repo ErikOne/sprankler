@@ -35,12 +35,12 @@ static void * localDoNothing(void * ignore)
 
 START_TEST(test_createAndDestroyThread)
   const IThread_t * const ti = getThreadIntf();
-  OsThread_t thread = ti->createThread(localDoNothing, NULL);
+  OsThread_t thread = ti->threadCreate(localDoNothing, NULL);
 
-  K_Status_e rc = ti->joinThread(thread);
+  K_Status_e rc = ti->threadJoin(thread);
   ck_assert_int_eq(rc, K_Status_OK);
 
-  rc = ti->destroyThread(thread);
+  rc = ti->threadDestroy(thread);
   ck_assert_int_eq(rc, K_Status_OK);
 
 END_TEST
@@ -60,13 +60,13 @@ static void * localIncrementWithAtomic(struct _testData1 * data)
 
   for (i = 0; i < data->loop; i++)
   {
-    while (ti->lockAtomic(data->alock) != K_Status_OK)
+    while (ti->alockLock(data->alock) != K_Status_OK)
     {
-      ti->yieldThread();
+      ti->threadYield();
     }
 
     data->value++;
-    ti->unlockAtomic(data->alock);
+    ti->alockUnlock(data->alock);
   }
 
   return NULL;
@@ -79,12 +79,12 @@ START_TEST(test_atomiclocksInMutiThread)
 
     struct _testData1 * data = mem->malloc(sizeof(struct _testData1));
 
-    data->alock = ti->createALock();
+    data->alock = ti->alockCreate();
     data->value = 0;
     data->loop = 10000;
 
     ck_assert(data->alock != NULL);
-    ck_assert(ti->lockAtomic(data->alock) == K_Status_OK);
+    ck_assert(ti->alockLock(data->alock) == K_Status_OK);
 
     size_t nbrOfThreads = 5;
     size_t i;
@@ -93,19 +93,19 @@ START_TEST(test_atomiclocksInMutiThread)
 
     for (i = 0; i < nbrOfThreads; i++)
     {
-      threads[i] = ti->createThread((THREAD_FUNCTION)localIncrementWithAtomic, data);
+      threads[i] = ti->threadCreate((THREAD_FUNCTION)localIncrementWithAtomic, data);
       ck_assert(threads[i] != NULL);
     }
 
-    ck_assert(ti->unlockAtomic(data->alock) == K_Status_OK);
+    ck_assert(ti->alockUnlock(data->alock) == K_Status_OK);
 
     for (i = 0; i < nbrOfThreads; i++)
     {
-      ck_assert(ti->destroyThread(threads[i]) == K_Status_OK);
+      ck_assert(ti->threadDestroy(threads[i]) == K_Status_OK);
     }
 
     ck_assert(data->value == nbrOfThreads * data->loop);
-    ck_assert(ti->destroyALock(data->alock) == K_Status_OK);
+    ck_assert(ti->alockDestroy(data->alock) == K_Status_OK);
     mem->free(data);
 
   }

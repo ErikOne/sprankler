@@ -85,7 +85,7 @@ K_Status_e qCreateCommonQueueFields(struct _Queue * queue, QueuePolicy_e policy)
   {
     const IThread_t * const ti = getThreadIntf();
     queue->policy = policy;
-    if ((queue->mutex = ti->createMutex()) != NULL)
+    if ((queue->mutex = ti->mutexCreate()) != NULL)
     {
       if ((queue->full = ti->conditionCreate()) != NULL)
       {
@@ -119,7 +119,7 @@ void qDestroyCommonQueueFields(struct _Queue * queue)
 {
   const IThread_t * const ti = getThreadIntf();
 
-  if (ti->destroyMutex(queue->mutex) != K_Status_OK)
+  if (ti->mutexDestroy(queue->mutex) != K_Status_OK)
   {
     ERROR("Can not destroy queue mutex");
   }

@@ -87,7 +87,7 @@ static K_Status_e localDynamicQueueBlockingGet(struct _Queue * dynq, void * item
 
     void ** data = (void **) item;
 
-    if (ti->lockMutex(dynq->mutex) == K_Status_OK)
+    if (ti->mutexLock(dynq->mutex) == K_Status_OK)
     {
       while (dynq->usage == 0)
       {
@@ -112,7 +112,7 @@ static K_Status_e localDynamicQueueBlockingGet(struct _Queue * dynq, void * item
         rc = K_Status_OK;
       }
 
-      (void) ti->unlockMutex(dynq->mutex);
+      (void) ti->mutexUnlock(dynq->mutex);
     }
   }
 
@@ -135,7 +135,7 @@ static K_Status_e localDynamicQueueNonBlockingGet(struct _Queue * dynq, void * i
 
     void ** data = (void **) item;
 
-    if (ti->lockMutex(dynq->mutex) == K_Status_OK)
+    if (ti->mutexLock(dynq->mutex) == K_Status_OK)
     {
       if (dynq->first != NULL)
       {
@@ -163,7 +163,7 @@ static K_Status_e localDynamicQueueNonBlockingGet(struct _Queue * dynq, void * i
         rc = K_Status_NoResult;
       }
 
-      (void) ti->unlockMutex(dynq->mutex);
+      (void) ti->mutexUnlock(dynq->mutex);
     }
   }
 
@@ -185,7 +185,7 @@ static K_Status_e localDynamicQueuePutItem(struct _Queue * dynq, void * item)
       newNode->data = item;
       newNode->next = NULL;
 
-      if (ti->lockMutex(dynq->mutex) == K_Status_OK)
+      if (ti->mutexLock(dynq->mutex) == K_Status_OK)
       {
         dynq->usage++;
         if ((dynq->last == NULL) && (dynq->first == NULL))
@@ -208,7 +208,7 @@ static K_Status_e localDynamicQueuePutItem(struct _Queue * dynq, void * item)
           abort();
         }
 
-        (void) ti->unlockMutex(dynq->mutex);
+        (void) ti->mutexUnlock(dynq->mutex);
 
         /* As the reader might be blocked because of empty inform him about it */
         (void) ti->conditionSignal(dynq->empty);
@@ -232,7 +232,7 @@ static K_Status_e localDynamicQueueResetQueue(struct _Queue * dynq, uint16_t * d
     const IThread_t * const ti = getThreadIntf();
     const IMem_t * const mem = getMemIntf();
 
-    if (ti->lockMutex(dynq->mutex) == K_Status_OK)
+    if (ti->mutexLock(dynq->mutex) == K_Status_OK)
     {
       *droppedPackets = dynq->usage;
 
@@ -253,7 +253,7 @@ static K_Status_e localDynamicQueueResetQueue(struct _Queue * dynq, uint16_t * d
       dynq->last = NULL;
 
       rc = K_Status_OK;
-      (void) ti->unlockMutex(dynq->mutex);
+      (void) ti->mutexUnlock(dynq->mutex);
     }
   }
 

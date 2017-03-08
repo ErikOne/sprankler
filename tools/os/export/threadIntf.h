@@ -23,38 +23,38 @@ typedef struct _thread_interface
    * \brief Creates a new AtomicLock
    */
 
-  OsAtomicLock_t (* createALock)(void);
+  OsAtomicLock_t (* alockCreate)(void);
 
   /*!
    * \brief Destroys an OsAtomicLock_t previously created with createALock
    */
 
-  K_Status_e (* destroyALock)(OsAtomicLock_t lock);
+  K_Status_e (* alockDestroy)(OsAtomicLock_t lock);
 
-  K_Status_e (* lockAtomic)(OsAtomicLock_t lock);
+  K_Status_e (* alockLock)(OsAtomicLock_t lock);
 
-  K_Status_e (* unlockAtomic)(OsAtomicLock_t lock);
+  K_Status_e (* alockUnlock)(OsAtomicLock_t lock);
 
-  K_Status_e (* trylockAtomic)(OsAtomicLock_t lock);
+  K_Status_e (* alockTrylock)(OsAtomicLock_t lock);
 
   /*!
    * \brief Creates a Mutex
    */
 
-  OsMutex_t (* createMutex)(void);
+  OsMutex_t (* mutexCreate)(void);
 
   /*!
    * \brief Destroys a mutex previously created with #createMutex
    *
    */
 
-  K_Status_e (* destroyMutex)(OsMutex_t mutex);
+  K_Status_e (* mutexDestroy)(OsMutex_t mutex);
 
-  K_Status_e (* lockMutex)(OsMutex_t mutex);
+  K_Status_e (* mutexLock)(OsMutex_t mutex);
 
-  K_Status_e (* unlockMutex)(OsMutex_t mutex);
+  K_Status_e (* mutexUnlock)(OsMutex_t mutex);
 
-  K_Status_e (* trylockMutex)(OsMutex_t mutex);
+  K_Status_e (* mutexTrylock)(OsMutex_t mutex);
 
   OsCondition_t (* conditionCreate)(void);
 
@@ -64,13 +64,13 @@ typedef struct _thread_interface
 
   K_Status_e (* conditionSignal)(OsCondition_t c);
 
-  OsThread_t (* createThread)(THREAD_FUNCTION f, void * userData);
+  OsThread_t (* threadCreate)(THREAD_FUNCTION f, void * userData);
 
-  K_Status_e (* destroyThread)(OsThread_t thread);
+  K_Status_e (* threadDestroy)(OsThread_t thread);
 
-  K_Status_e (* joinThread)(OsThread_t thread);
+  K_Status_e (* threadJoin)(OsThread_t thread);
 
-  K_Status_e (* yieldThread)(void);
+  K_Status_e (* threadYield)(void);
 
 } IThread_t;
 

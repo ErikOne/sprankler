@@ -73,10 +73,10 @@ K_Status_e platform_initSysPoller(void)
 
   if (localCreateAndRegisterWakeupSocket(&localPollerData) == K_Status_OK)
   {
-    if ((localPollerData.entryLock = ti->createMutex()) != NULL)
+    if ((localPollerData.entryLock = ti->mutexCreate()) != NULL)
     {
       localPollerData.active = K_True;
-      if ((localPollerData.pollerThread = ti->createThread(localPollerTask, &localPollerData)) != NULL)
+      if ((localPollerData.pollerThread = ti->threadCreate(localPollerTask, &localPollerData)) != NULL)
       {
         rc = K_Status_OK;
       }
@@ -99,12 +99,12 @@ K_Status_e platform_addPollHandler(int32_t fd, POLLHANDLER handler)
   const IThread_t * const ti = getThreadIntf();
   struct PollerData * poller = &localPollerData;
 
-  if (ti->lockMutex(poller->entryLock) == K_Status_OK)
+  if (ti->mutexLock(poller->entryLock) == K_Status_OK)
   {
     localWakeup(poller);
     while (poller->polling == K_True)
     {
-      ti->yieldThread();
+      ti->threadYield();
     }
 
     uint32_t i;
@@ -124,7 +124,7 @@ K_Status_e platform_addPollHandler(int32_t fd, POLLHANDLER handler)
         break;
       }
     }
-    ti->unlockMutex(poller->entryLock);
+    ti->mutexUnlock(poller->entryLock);
   }
 
   return rc;
@@ -137,12 +137,12 @@ K_Status_e platform_removePollHandler(int32_t fd)
   const IMem_t * const mem = getMemIntf();
   struct PollerData * poller = &localPollerData;
 
-  if (ti->lockMutex(poller->entryLock) == K_Status_OK)
+  if (ti->mutexLock(poller->entryLock) == K_Status_OK)
   {
     localWakeup(poller);
     while (poller->polling == K_True)
     {
-      ti->yieldThread();
+      ti->threadYield();
     }
 
     uint32_t i, j;
@@ -168,7 +168,7 @@ K_Status_e platform_removePollHandler(int32_t fd)
       }
     }
 
-    ti->unlockMutex(poller->entryLock);
+    ti->mutexUnlock(poller->entryLock);
   }
 
   return rc;
@@ -184,12 +184,12 @@ static void * localPollerTask(void * data)
     poller->polling = K_False;
     uint32_t nbr;
 
-    if (ti->lockMutex(poller->entryLock) == K_Status_OK)
+    if (ti->mutexLock(poller->entryLock) == K_Status_OK)
     {
       for (nbr = 0; (nbr < MAX_POLL_ENTRIES) && (poller->descriptors[nbr].fd != 0); nbr++) ;
 
       poller->polling = K_True;
-      ti->unlockMutex(poller->entryLock);
+      ti->mutexUnlock(poller->entryLock);
     }
 
     int32_t timeout = -1;
