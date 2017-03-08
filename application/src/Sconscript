@@ -1,0 +1,39 @@
+Import('env')
+
+myEnv=env.Clone()
+
+lib = myEnv.Lib("sprankler","sprankler_bus.c")
+intf = myEnv.Lib('spranklerintf',"sprankler_intf.c")
+
+interfaces = [
+	'memintf',
+	'utilsintf',
+	'threadintf',
+	'platformintf',
+	'netintf',
+	'loggingintf',
+	'queueintf',
+	'ebusintf',
+	'spranklerintf'
+]
+
+implementations = [
+	'mem',
+	'utils',
+	'thread',
+	'net',
+	'platform',
+	'logging',
+	'queue',
+	'ebus',
+	'sprankler'
+]
+
+libs = []
+libs.extend(interfaces)
+libs.extend(implementations)
+
+system_libs = ['zlog']
+
+app = myEnv.App('Sprankler','main.c',LIBS=libs,SYSTEM_LIBS=system_libs)
+myEnv.Alias('app',app)

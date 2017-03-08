@@ -1,34 +1,8 @@
 Import('env')
 
-myEnv=env.Clone()
 
-interfaces = [
-	'memintf',
-	'utilsintf',
-	'threadintf',
-	'platformintf',
-	'netintf',
-	'loggingintf',
-	'queueintf',
-	'ebusintf',
+SUBDIRS = [
+  'src',
 ]
 
-implementations = [
-	'mem',
-	'utils',
-	'thread',
-	'net',
-	'platform',
-	'logging',
-	'queue',
-	'ebus',
-]
-
-libs = []
-libs.extend(interfaces)
-libs.extend(implementations)
-
-system_libs = ['zlog']
-
-sprankler = myEnv.App('Sprankler','sprankler.c',LIBS=libs,SYSTEM_LIBS=system_libs)
-myEnv.Alias('app',sprankler)
+env.SConscript(dirs=SUBDIRS, name='Sconscript', exports='env')

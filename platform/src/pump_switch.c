@@ -5,7 +5,7 @@
 #include <platform/platformIntf.h>
 #include <logging/logging.h>
 #include <eventbus/eventbusIntf.h>
-#include <sprankler/sprankler.h>
+#include <sprankler/spranklerIntf.h>
 
 #include <stdlib.h>
 #include <fcntl.h>
@@ -133,12 +133,11 @@ static void localHandlePushButtonTrigger(int32_t fd, uint8_t * data, uint32_t nb
             if (x - lastTime > 250000000)
             {
               const EventBusIntf_t * const ebi = getEventBusIntf();
+              const ISprankler_t * const spi = getSpranklerIntf();
 
-              printf("Button was pressed\n");
-
-              if (ebi->handleOnBus(localToggleGPIO, NULL, NULL, getSpranklerBus()) != K_Status_OK)
+              if (ebi->handleOnBus(localToggleGPIO, NULL, NULL, spi->getEventbus()) != K_Status_OK)
               {
-                printf("Failed to call BUS event\n");
+                ERROR("Failed to call BUS event\n");
               }
             }
             lastTime = x;
@@ -151,7 +150,7 @@ static void localHandlePushButtonTrigger(int32_t fd, uint8_t * data, uint32_t nb
 
 static void localToggleGPIO(const void * const data)
 {
-  printf("Toggle GPIO in bus thread\n");
+  INFO("%s\n\n", __FUNCTION__);
   const IPlatform_t * const platform = getPlatformIntf();
   platform->toggleGPIO(GPIO_Relais_1);
   platform->toggleGPIO(GPIO_Relais_2);

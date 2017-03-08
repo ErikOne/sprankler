@@ -18,6 +18,4 @@ lib = myEnv.Lib('platform',platform_impl)
 intf = myEnv.Lib('platformintf',platform_intf)
 
 
-
-
 myEnv.Alias('platform',[intf,lib])   

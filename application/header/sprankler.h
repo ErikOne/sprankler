@@ -8,9 +8,9 @@
 #ifndef EXPORT_SPRANKLER_H_
 #define EXPORT_SPRANKLER_H_
 
-#include <eventbus/eventbusIntf.h>
+#include <sprankler/spranklerIntf.h>
 
-EventBus_t getSpranklerBus(void);
-
+K_Status_e sprankler_initEventBus(void);
+EventBus_t sprankler_getEventBus(void);
 
 #endif /* EXPORT_SPRANKLER_H_ */
