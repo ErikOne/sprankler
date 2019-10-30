@@ -70,12 +70,12 @@ func getStatus(button string) string {
 
 
 func createResponse() string {
-	var x = strings.Replace(s, "__LABEL1__", LABEL1, -1)
-	var state1 = getStatus("1") 
+	var state1 = getStatus("1")
 	var state2 = getStatus("2")
 	var state3 = getStatus("3")
 	var state4 = getStatus("4")
 
+	var x = strings.Replace(s, "__LABEL1__", LABEL1, -1)
 	x = strings.Replace(x, "__LABEL2__", LABEL2, -1)
 	x = strings.Replace(x, "__LABEL3__", LABEL3, -1)
 	x = strings.Replace(x, "__LABEL4__", LABEL4, -1)
@@ -87,7 +87,7 @@ func createResponse() string {
 	x = strings.Replace(x, "__STATE3__", state3, -1)
 	x = strings.Replace(x, "__STATE4__", state4, -1)
 
-	return x 
+	return x
 }
 
 func handle_get_request(w http.ResponseWriter, r *http.Request) {
