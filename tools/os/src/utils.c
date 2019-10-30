@@ -42,7 +42,7 @@ K_Status_e utils_usleep(uint32_t microseconds)
   return rc;
 }
 
-size_t utils_stringLength(const char_t * s)
+size_t utils_stringLength(const char_t * const s)
 {
   size_t len = 0;
 

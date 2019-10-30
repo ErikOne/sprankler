@@ -43,7 +43,7 @@ typedef struct _utils_interface
 
   K_Status_e (* getTimeOfDay)(OsTime_t * time);
 
-  size_t (* stringLength)( const char_t const * string);
+  size_t (* stringLength)( const char_t *const string);
 
   K_Status_e (* stringCopy)(char_t ** dest, const char_t * const src);
 
