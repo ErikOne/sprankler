@@ -8,33 +8,30 @@ import (
     "strings"
 )
 
-var counter int
-var relay1 = false
-var relay2 = false 
-var relay3 = false 
-var relay4 = false
-
-const LABEL1="Circuit 1"
-const LABEL2="Circuit 2"
-const LABEL3="Circuit 3"
+const LABEL1="Valve 1"
+const LABEL2="Valve 2"
+const LABEL3="Valve 3"
 const LABEL4="Pomp"
-const LABEL5="Alles Aan"
-const LABEL6="Alles uit"
+const LABEL5="All On"
+const LABEL6="All Off"
+
+const STATUS_SCRIPT="/usr/local/bin/status.py"
+const TOGGLE_SCRIPT="/usr/local/bin/toggle.py"
 
 
 
 var s = `<html>
 <body>
-<form action="doe_iet" method="post">
+<form action="status" method="post">
 <center>
-<table border="0" width="100%" height="100%" class="buttons">
+<table border="0" rules="none" width="100%" height="100%">
 <tr>
 <td bgcolor="#fdfd96" align="center" border="0" style="font-size: 25px; font-style: italic;">
 <input type="submit" name="knop" value="__LABEL1__" style="font-size : 50px; width: 100%; height: 100px; background:none; padding:none; border:none;">
 <br>
 (__STATE1__)
 </td>
-<td bgcolor="#ffa500" align ="center" border="0" style="font-size: 25px; font-style: italic;">
+<td bgcolor="#ffb347" align ="center" border="0" style="font-size: 25px; font-style: italic;">
 <input type="submit" name="knop" value="__LABEL2__" style="font-size : 50px; width: 100%; height: 100px; background:none; padding:none; border:none;">
 <br>
 (__STATE2__)
@@ -46,17 +43,17 @@ var s = `<html>
 <br>
 (__STATE3__)
 </td>
-<td bgcolor="#adff2f" align="center" border="0" style="font-size: 25px; font-style: italic;">
+<td bgcolor="#77dd77" align="center" border="0" style="font-size: 25px; font-style: italic;">
 <input type="submit" name="knop" value="__LABEL4__" style="font-size : 50px; width: 100%; height: 100px; background:none; padding:none; border:none;">
 <br>
 (__STATE4__)
 </td>
 </tr>
 <tr>
-<td bgcolor="#cd5c5c" align="center" border="0">
+<td bgcolor="#ff6961" align="center" border="0">
 <input type="submit" name="knop" value="__LABEL5__" style="font-size : 50px; width: 100%; height: 100px; background:none; padding:none; border:none;">
 </td>
-<td bgcolor="#ffbcd9" align="center" border="0">
+<td bgcolor="#cfcfc4" align="center" border="0">
 <input type="submit" name="knop" value="__LABEL6__" style="font-size : 50px; width: 100%; height: 100px; background:none; padding:none; border:none;">
 </td>
 </tr>
@@ -66,36 +63,24 @@ var s = `<html>
 </body>
 </html>`
 
+func getStatus(button string) string {
+	var output, _ = exec.Command(STATUS_SCRIPT,button).Output()
+	return string(output)
+}
+
 
 func createResponse() string {
 	var x = strings.Replace(s, "__LABEL1__", LABEL1, -1)
-	var state1 = "Inactive"
-	var state2 = "Inactive"
-	var state3 = "Inactive"
-	var state4 = "Inactive"
+	var state1 = getStatus("1") 
+	var state2 = getStatus("2")
+	var state3 = getStatus("3")
+	var state4 = getStatus("4")
 
 	x = strings.Replace(x, "__LABEL2__", LABEL2, -1)
 	x = strings.Replace(x, "__LABEL3__", LABEL3, -1)
 	x = strings.Replace(x, "__LABEL4__", LABEL4, -1)
 	x = strings.Replace(x, "__LABEL5__", LABEL5, -1)
 	x = strings.Replace(x, "__LABEL6__", LABEL6, -1)
-
-
-	if relay1 {
-		state1="Active" 
-	}
-
-	if relay2 {
-		state2="Active" 
-	}
-
-	if relay3 {
-		state3="Active" 
-	}
-
-	if relay4 {
-		state4="Active" 
-	}
 
 	x = strings.Replace(x, "__STATE1__", state1, -1)
 	x = strings.Replace(x, "__STATE2__", state2, -1)
@@ -105,63 +90,32 @@ func createResponse() string {
 	return x 
 }
 
-func echoString(w http.ResponseWriter, r *http.Request) {
+func handle_get_request(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, createResponse() )
 }
 
-func updateState(name string) {
-	if name == LABEL1 {
-		relay1 = !relay1
-	} else if name == LABEL2 {
-		relay2 = !relay2
-	} else if name == LABEL3 {
-		relay3 = !relay3
-	} else if name == LABEL4 {
-		relay4 = !relay4
-	} else if name == LABEL5 {
-		relay1 = true
-		relay2 = true
-		relay3 = true
-		relay4 = true
-	} else if name == LABEL6 {
-		relay1 = false
-		relay2 = false
-		relay3 = false
-		relay4 = false
-	}
-
-}
-
-
-func test(w http.ResponseWriter, r *http.Request) {
+func handle_post_request(w http.ResponseWriter, r *http.Request) {
     var value = r.FormValue("knop")
     if value == LABEL1 {
-	cmd := exec.Command("/usr/local/bin/toggle.py", "1")
-	cmd.Run()
+	exec.Command(TOGGLE_SCRIPT, "1").Run()
     } else if value == LABEL2 {
-	cmd := exec.Command("/usr/local/bin/toggle.py", "2")
-	cmd.Run()
+	exec.Command(TOGGLE_SCRIPT, "2").Run()
     } else if value == LABEL3 {
-	cmd := exec.Command("/usr/local/bin/toggle.py", "3")
-	cmd.Run()
+	exec.Command(TOGGLE_SCRIPT, "3").Run()
     } else if value == LABEL4 {
-	cmd := exec.Command("/usr/local/bin/toggle.py", "4")
-	cmd.Run()
+	exec.Command(TOGGLE_SCRIPT, "4").Run()
     } else if value == LABEL5 {
-	cmd := exec.Command("/usr/local/bin/toggle.py", "5")
-	cmd.Run()
+	exec.Command(TOGGLE_SCRIPT, "5").Run()
     } else if value == LABEL6 {
-	cmd := exec.Command("/usr/local/bin/toggle.py", "6")
-	cmd.Run()
+	exec.Command(TOGGLE_SCRIPT, "6").Run()
     }
-    updateState(value)
 
     fmt.Fprintf(w, createResponse())
 }
 
 func main() {
-    http.HandleFunc("/", echoString)
-    http.HandleFunc("/doe_iet", test)
+    http.HandleFunc("/", handle_get_request)
+    http.HandleFunc("/status", handle_post_request)
 
     log.Fatal(http.ListenAndServe(":8081", nil))
 
